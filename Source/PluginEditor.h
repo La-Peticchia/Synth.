@@ -14,6 +14,7 @@
 //==============================================================================
 /**
 */
+
 class GCB_SynthAudioProcessorEditor  : public juce::AudioProcessorEditor
 {
 public:
@@ -30,7 +31,7 @@ private:
     GCB_SynthAudioProcessor& audioProcessor;
     juce::MidiKeyboardComponent keyboardComp;
 
-
+    juce::Slider knob;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (GCB_SynthAudioProcessorEditor)
 };
