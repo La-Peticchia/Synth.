@@ -3252,6 +3252,12 @@
     <ClInclude Include="..\..\Source\AudioSynth.h">
       <Filter>GCB_Synth\Source</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Source\CustomOscillator.h">
+      <Filter>GCB_Synth\Source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\CustomDistortion.h">
+      <Filter>GCB_Synth\Source</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\..\..\JUCE\modules\juce_audio_basics\audio_play_head\juce_AudioPlayHead.h">
       <Filter>JUCE Modules\juce_audio_basics\audio_play_head</Filter>
     </ClInclude>

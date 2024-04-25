@@ -12,6 +12,10 @@
             file="Source/PluginEditor.cpp"/>
       <FILE id="FRvR6K" name="PluginEditor.h" compile="0" resource="0" file="Source/PluginEditor.h"/>
       <FILE id="u9Lm6c" name="AudioSynth.h" compile="0" resource="0" file="Source/AudioSynth.h"/>
+      <FILE id="QcK7Y3" name="CustomOscillator.h" compile="0" resource="0"
+            file="Source/CustomOscillator.h"/>
+      <FILE id="Kq82j1" name="CustomDistortion.h" compile="0" resource="0"
+            file="Source/CustomDistortion.h"/>
     </GROUP>
   </MAINGROUP>
   <MODULES>
