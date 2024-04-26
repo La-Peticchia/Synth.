@@ -9,6 +9,7 @@
 #pragma once
 
 #include <JuceHeader.h>
+#include "AudioSynth.h"
 
 //==============================================================================
 /**
@@ -21,7 +22,7 @@ public:
     ~GCB_SynthAudioProcessor() override;
 
     //==============================================================================
-    void prepareToPlay (double sampleRate, int samplesPerBlock) override;
+    void prepareToPlay(double sampleRate, int samplesPerBlock) override;
     void releaseResources() override;
 
    #ifndef JucePlugin_PreferredChannelConfigurations
@@ -58,7 +59,7 @@ private:
 
     juce::dsp::ProcessorChain<juce::dsp::Oscillator<float>> prcessorChain;
     juce::MidiMessageCollector midiMessageCollector;
-
+    AudioSynth audioSynth;
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (GCB_SynthAudioProcessor)
 };
