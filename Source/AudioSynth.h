@@ -173,6 +173,26 @@ class Voice : public juce::SynthesiserVoice {
                 }
                 
             }
+            else if (currentState == release) {
+                while (nSamp--) {
+                    float nextValue = gain.getNextValue();
+
+                    for (auto i = nChannels; --i >= 0;)
+                        blockPointers[i][sampleIndex] *= nextValue;
+
+                    sampleIndex++;
+                    //DBG(std::fabs(gain.getTargetValue() - gain.getCurrentValue()));
+                    if (std::fabs(gain.getTargetValue() - gain.getCurrentValue()) < 0.01f) {
+                        if (rampCount == attacks.size()) {
+                            currentState = sustain;
+                            break;
+                        }
+
+                        //gain.reset(getSampleRate(), attacks[rampCount]->duration);
+                        gain.setTargetValue(attacks[rampCount++]->targetValue);
+                    }
+                }
+            }
             
             if(isKeyDown())
             juce::dsp::AudioBlock<float>(outputBuffer)
@@ -311,10 +331,15 @@ class Voice : public juce::SynthesiserVoice {
             }
 
             */
+
         }
 
         void pitchWheelMoved(int) override {}
         void controllerMoved(int, int) override {}
+
+        CustomOscillator<float>& GetOscillator() {
+            return processorChain.get<oscIndex>();
+        }
 
     private:
     
@@ -367,6 +392,11 @@ public:
 
         for (auto* v : voices)
             dynamic_cast<Voice*> (v)->prepare(spec);
+    }
+
+    void SetOscillatorWave(WaveType wave) {
+        for (int i = 0; i < voices.size(); i++)
+            dynamic_cast<Voice*>(voices[i])->GetOscillator().SetWave(wave);
     }
 
 private:
