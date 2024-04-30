@@ -146,7 +146,7 @@ class Voice : public juce::SynthesiserVoice {
             juce::Array<float*> blockPointers;
 
             for (int i = 0; i < nChannels; i++)
-                blockPointers.add(block.getChannelPointer(1));
+                blockPointers.add(block.getChannelPointer(i));
             if(!juce::approximatelyEqual(gain.getCurrentValue(), 0.f))
             DBG(gain.getCurrentValue());
 
