@@ -60,6 +60,7 @@ GCB_SynthAudioProcessorEditor::GCB_SynthAudioProcessorEditor (GCB_SynthAudioProc
     //setResizable(true, true);
     //setResizeLimits(500,250,1200,600);
     setSize (800, 450);
+
 }
 
 GCB_SynthAudioProcessorEditor::~GCB_SynthAudioProcessorEditor()
@@ -70,11 +71,14 @@ GCB_SynthAudioProcessorEditor::~GCB_SynthAudioProcessorEditor()
 void GCB_SynthAudioProcessorEditor::paint (juce::Graphics& g)
 {
     // (Our component is opaque, so we must completely fill the background with a solid colour)
+
    // g.fillAll (getLookAndFeel().findColour (juce::ResizableWindow::backgroundColourId));
+
 }
 
 void GCB_SynthAudioProcessorEditor::resized()
 {
+
     // Calcolo delle dimensioni dei componenti
     int keyboardHeight = 130;
     auto leftMargin = getWidth() * 0.05; // Ridotto il margine sinistro
@@ -101,3 +105,4 @@ void GCB_SynthAudioProcessorEditor::resized()
     border1.setBounds(dial1.getX(), topMargin * 0.1, dialSize, dial1.getY() + dial1.getHeight());
     border2.setBounds(dial2.getX(), topMargin * 0.1, dial2.getWidth() + dial3.getWidth() + 20, dial2.getHeight() + 43);
 }
+

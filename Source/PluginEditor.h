@@ -32,6 +32,7 @@ private:
     GCB_SynthAudioProcessor& audioProcessor;
     juce::MidiKeyboardComponent keyboardComp;
 
+
     juce::Slider dial;
     juce::GroupComponent border;
     juce::Slider dial1;
