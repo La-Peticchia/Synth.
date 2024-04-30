@@ -8,6 +8,7 @@
 
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
+#include "Enums.h"
 
 //==============================================================================
 GCB_SynthAudioProcessorEditor::GCB_SynthAudioProcessorEditor (GCB_SynthAudioProcessor& p)
@@ -27,6 +28,10 @@ GCB_SynthAudioProcessorEditor::GCB_SynthAudioProcessorEditor (GCB_SynthAudioProc
     dial.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 32, 16);
     dial.setRange(0, 3, 1.5);
     dial.setColour(juce::Slider::ColourIds::rotarySliderFillColourId, juce::Colours::white);
+    dial.onValueChange = [&]()
+        {
+            audioProcessor.audioSynth.
+        };
 
     addAndMakeVisible(border);
     border.setText("Tipo_forma_d'onda");
@@ -72,7 +77,7 @@ void GCB_SynthAudioProcessorEditor::paint (juce::Graphics& g)
 {
     // (Our component is opaque, so we must completely fill the background with a solid colour)
 
-   // g.fillAll (getLookAndFeel().findColour (juce::ResizableWindow::backgroundColourId));
+    // g.fillAll (getLookAndFeel().findColour (juce::ResizableWindow::backgroundColourId));
 
 }
 
@@ -104,5 +109,5 @@ void GCB_SynthAudioProcessorEditor::resized()
     border.setBounds(firstDialX, topMargin * 0.1, dialSize, dial.getY() + dial.getHeight());
     border1.setBounds(dial1.getX(), topMargin * 0.1, dialSize, dial1.getY() + dial1.getHeight());
     border2.setBounds(dial2.getX(), topMargin * 0.1, dial2.getWidth() + dial3.getWidth() + 20, dial2.getHeight() + 43);
+    
 }
-
