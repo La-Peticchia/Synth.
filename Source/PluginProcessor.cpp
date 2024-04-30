@@ -147,6 +147,13 @@ void GCB_SynthAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, ju
 
     audioSynth.renderNextBlock(buffer, midiMessages, 0, buffer.getNumSamples());
 
+    int numSamples = buffer.getNumSamples();
+    int startSample = 0;
+
+    //while (numSamples--)
+    //{
+    //    DBG(buffer.getSample(0, startSample++));
+    //}
 }
 
 //==============================================================================

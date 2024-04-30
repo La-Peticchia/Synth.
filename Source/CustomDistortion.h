@@ -24,12 +24,12 @@ class CustomDistortion {
 public:
 
     CustomDistortion() {
-        SetFunction(waveFold);
+        SetFunction(none);
         processorChain.get<gainIndex>().setRampDurationSeconds(SMOOTHING_TIME);
         processorChain.get<biasIndex>().setRampDurationSeconds(SMOOTHING_TIME);
 
-        SetGain(2);
-        SetBias(-1);
+        SetGain(1);
+        SetBias(0);
     }
 
 
@@ -72,6 +72,7 @@ public:
     void prepare(const juce::dsp::ProcessSpec& spec)
     {        
         processorChain.prepare(spec);
+        
     }
 
 
