@@ -9,15 +9,9 @@
 */
 
 #pragma once
+#include "Enums.h"
 
 #define SMOOTHING_TIME 0.01
-
-enum FunctionType {
-    softClip,
-    hardClip,
-    waveFold,
-    none
-};
 
 template <typename Type>
 class CustomDistortion {

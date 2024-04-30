@@ -11,6 +11,7 @@
 #include <JuceHeader.h>
 #include "CustomOscillator.h"
 #include "CustomDistortion.h"
+#include "Enums.h"
 
 #pragma once
 
@@ -22,13 +23,6 @@ struct Sound : public juce::SynthesiserSound
     bool appliesToChannel(int) override { return true; }
 };
 
-
-enum envState {
-    attack,
-    sustain,
-    release, 
-    silence
-};
 
 struct Ramp {
 public:

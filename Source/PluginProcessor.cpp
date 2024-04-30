@@ -8,7 +8,7 @@
 
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
-
+#include "Enums.h"
 //==============================================================================
 GCB_SynthAudioProcessor::GCB_SynthAudioProcessor()://keyboardComp(keyboardState, juce::KeyboardComponentBase::horizontalKeyboard),
 #ifndef JucePlugin_PreferredChannelConfigurations

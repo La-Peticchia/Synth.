@@ -9,13 +9,9 @@
 */
 
 #pragma once
+#include "Enums.h"
 
-enum WaveType {
-    sine,
-    sawThooth,
-    squareWave,
-    triangular
-};
+
 
 template <typename Type>
 class CustomOscillator{
