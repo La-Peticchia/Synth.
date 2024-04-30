@@ -17,7 +17,6 @@ GCB_SynthAudioProcessorEditor::GCB_SynthAudioProcessorEditor (GCB_SynthAudioProc
     // editor's size to whatever you need it to be.
     addAndMakeVisible(keyboardComp);
     keyboardComp.setMidiChannel(2);
-
     //CustomLookAndFeel customLookAndFeel;
 
     //Aggiungo lo slider
