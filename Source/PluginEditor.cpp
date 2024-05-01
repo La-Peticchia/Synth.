@@ -20,7 +20,7 @@ GCB_SynthAudioProcessorEditor::GCB_SynthAudioProcessorEditor (GCB_SynthAudioProc
     keyboardComp.setMidiChannel(2);
     //CustomLookAndFeel customLookAndFeel;
 
-    //Aggiungo lo slider
+    //slider per l'oscillator
     addAndMakeVisible(dial);
     //knob.setLookAndFeel(&customLookAndFeel);
     dial.setSliderStyle(juce::Slider::SliderStyle::Rotary);
@@ -29,20 +29,33 @@ GCB_SynthAudioProcessorEditor::GCB_SynthAudioProcessorEditor (GCB_SynthAudioProc
     dial.setColour(juce::Slider::ColourIds::rotarySliderFillColourId, juce::Colours::white);
     dial.onValueChange = [&]()
         {
-            audioProcessor.audioSynth.
+            float dialValue = dial.getValue();
+
+            if (dialValue < 1.0)
+            {
+                audioProcessor.audioSynth.SetOscillatorWave(WaveType::sine);
+            }
+            else if (dialValue >= 1.0 && dialValue < 2.0)
+            {
+                audioProcessor.audioSynth.SetOscillatorWave(WaveType::sawThooth);
+            }
+            else if (dialValue >= 2.0 && dialValue <= 3.0)
+            {
+                audioProcessor.audioSynth.SetOscillatorWave(WaveType::triangular);
+            }
+
         };
-
     addAndMakeVisible(border);
-    border.setText("Tipo_forma_d'onda");
-
+    border.setText("Oscillator");
+    
+    //slider per lo waveshaper
     addAndMakeVisible(dial1);
     dial1.setSliderStyle(juce::Slider::SliderStyle::Rotary);
     dial1.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 32, 16);
     dial1.setRange(0, 3, 1.5);
     dial1.setColour(juce::Slider::ColourIds::rotarySliderFillColourId, juce::Colours::white);
-
     addAndMakeVisible(border1);
-    border1.setText("Sintesi_sottrattiva");
+    border1.setText("Waveshaper");
 
     addAndMakeVisible(dial2);
     dial2.setSliderStyle(juce::Slider::SliderStyle::Rotary);
@@ -58,6 +71,8 @@ GCB_SynthAudioProcessorEditor::GCB_SynthAudioProcessorEditor (GCB_SynthAudioProc
 
     addAndMakeVisible(border2);
     border2.setText("Generatori_di_inviluppo");
+
+    // farne un quarto per la sintesi sottrattiva
 
     //metodi per resizare la window
     //getConstrainer()->setFixedAspectRatio(2.0);

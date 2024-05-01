@@ -10,21 +10,21 @@
 
 #pragma once
 
-enum envState {
+enum envState { //generatori
     attack,
     sustain,
     release,
     silence
 };
 
-enum WaveType {
+enum WaveType { //oscillator
     sine,
     sawThooth,
     squareWave,
     triangular
 };
 
-enum FunctionType {
+enum FunctionType { //waveshaper
     softClip,
     hardClip,
     waveFold,
