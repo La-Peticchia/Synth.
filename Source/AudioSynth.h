@@ -341,6 +341,10 @@ class Voice : public juce::SynthesiserVoice {
             return processorChain.get<oscIndex>();
         }
 
+        CustomDistortion<float>& GetDistortion() {
+            return processorChain.get<distortionIndex>();
+        }
+
     private:
     
         enum
@@ -398,6 +402,22 @@ public:
         for (int i = 0; i < voices.size(); i++)
             dynamic_cast<Voice*>(voices[i])->GetOscillator().SetWave(wave);
     }
+
+    void SetDistortionFunction(FunctionType func) {
+        for (int i = 0; i < voices.size(); i++)
+            dynamic_cast<Voice*>(voices[i])->GetDistortion().SetFunction(func);
+    }
+
+    void SetDistortionBias(float bias) {
+        for (int i = 0; i < voices.size(); i++)
+            dynamic_cast<Voice*>(voices[i])->GetDistortion().SetBias(bias);
+    }
+
+    void SetDistortionGain(float gain) {
+        for (int i = 0; i < voices.size(); i++)
+            dynamic_cast<Voice*>(voices[i])->GetDistortion().SetGain(gain);
+    }
+
 
 private:
     

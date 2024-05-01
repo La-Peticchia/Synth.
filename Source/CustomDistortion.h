@@ -30,13 +30,13 @@ public:
     void SetFunction(FunctionType funcT) {
 
         auto& waveShaper = processorChain.get<shaperIndex>();
-
         switch (funcT)
         {
         case softClip:
                 waveShaper.functionToUse = [](Type x)
                     {
                         return juce::jlimit(Type(-1), Type(1), tanh(x));
+                        //return tanhApprox(x);
                     };
                 break;
 
@@ -98,6 +98,9 @@ private:
         shaperIndex
     };
     juce::dsp::ProcessorChain<juce::dsp::Bias<Type>, juce::dsp::Gain<Type>, juce::dsp::WaveShaper<Type>> processorChain;
+
+    //juce::dsp::LookupTableTransform<float> tanhApprox([](float x) {return tanh(x); }, -1.f, 1.f, 128);
+    
 
     float maxGain = 5, minGain = 1 / 5;
     float maxBias = 1, minBias = -1;
