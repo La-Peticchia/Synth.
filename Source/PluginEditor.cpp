@@ -27,10 +27,10 @@ GCB_SynthAudioProcessorEditor::GCB_SynthAudioProcessorEditor (GCB_SynthAudioProc
     dial.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 32, 16);
     dial.setRange(0, 3, 1.5);
     dial.setColour(juce::Slider::ColourIds::rotarySliderFillColourId, juce::Colours::white);
-    dial.onValueChange = [&]()
-        {
-            audioProcessor.audioSynth.
-        };
+    //dial.onValueChange = [&]()
+    //    {
+    //        audioProcessor.audioSynth.
+    //    };
 
     addAndMakeVisible(border);
     border.setText("Tipo_forma_d'onda");

@@ -14,7 +14,7 @@ enum envState {
     attack,
     sustain,
     release,
-    silence
+    idle
 };
 
 enum WaveType {

@@ -23,6 +23,7 @@ GCB_SynthAudioProcessor::GCB_SynthAudioProcessor()://keyboardComp(keyboardState,
 #endif
 {
     keyboardState.addListener(&midiMessageCollector);
+
 }
 
 GCB_SynthAudioProcessor::~GCB_SynthAudioProcessor()
