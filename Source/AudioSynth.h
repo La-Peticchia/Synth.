@@ -430,23 +430,23 @@ public:
     }
 
     void SetOscillatorWave(WaveType wave) {
-        for (int i = 0; i < voices.size(); i++)
-            dynamic_cast<Voice*>(voices[i])->GetOscillator().SetWave(wave);
+        for (int i = 0; i < getNumVoices(); i++)
+            dynamic_cast<Voice*>(getVoice(i))->GetOscillator().SetWave(wave);
     }
 
     void SetDistortionFunction(FunctionType func) {
-        for (int i = 0; i < voices.size(); i++)
-            dynamic_cast<Voice*>(voices[i])->GetDistortion().SetFunction(func);
+        for (int i = 0; i < getNumVoices(); i++)
+            dynamic_cast<Voice*>(getVoice(i))->GetDistortion().SetFunction(func);
     }
 
     void SetDistortionBias(float bias) {
-        for (int i = 0; i < voices.size(); i++)
-            dynamic_cast<Voice*>(voices[i])->GetDistortion().SetBias(bias);
+        for (int i = 0; i < getNumVoices(); i++)
+            dynamic_cast<Voice*>(getVoice(i))->GetDistortion().SetBias(bias);
     }
 
     void SetDistortionGain(float gain) {
-        for (int i = 0; i < voices.size(); i++)
-            dynamic_cast<Voice*>(voices[i])->GetDistortion().SetGain(gain);
+        for (int i = 0; i < getNumVoices(); i++)
+            dynamic_cast<Voice*>(getVoice(i))->GetDistortion().SetGain(gain);
     }
 
 private:

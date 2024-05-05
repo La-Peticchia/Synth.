@@ -55,9 +55,13 @@ public:
 
                 }, 128);
             break;
+        case squareWave:
+            osc.initialise([](Type x) {
+                return jlimit(Type(-1), Type(1), sin(x) * Type(50));
+                }, 128);
+            break;
 
         }
-
     }
 
     void setFrequency(Type newValue, bool force = false)

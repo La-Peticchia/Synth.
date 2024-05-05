@@ -93,11 +93,12 @@ public:
 private:
     enum 
     {
-        biasIndex,
         gainIndex,
-        shaperIndex
+        biasIndex,
+        shaperIndex,
+        bias1Index
     };
-    juce::dsp::ProcessorChain<juce::dsp::Bias<Type>, juce::dsp::Gain<Type>, juce::dsp::WaveShaper<Type>> processorChain;
+    juce::dsp::ProcessorChain<juce::dsp::Gain<Type>, juce::dsp::Bias<Type>, juce::dsp::WaveShaper<Type>> processorChain;
 
     //juce::dsp::LookupTableTransform<float> tanhApprox([](float x) {return tanh(x); }, -1.f, 1.f, 128);
     

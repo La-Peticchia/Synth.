@@ -362,4 +362,8 @@ MigrationBackup/
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
 
+#All Biulds
 Builds/
+
+#Jucer files
+*.jucer

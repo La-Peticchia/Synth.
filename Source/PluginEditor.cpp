@@ -41,7 +41,7 @@ GCB_SynthAudioProcessorEditor::GCB_SynthAudioProcessorEditor (GCB_SynthAudioProc
             }
             else if (dialValue >= 2.0 && dialValue <= 3.0)
             {
-                audioProcessor.audioSynth.SetOscillatorWave(WaveType::triangular);
+                audioProcessor.audioSynth.SetOscillatorWave(WaveType::squareWave);
             }
 
         };
@@ -52,25 +52,25 @@ GCB_SynthAudioProcessorEditor::GCB_SynthAudioProcessorEditor (GCB_SynthAudioProc
     addAndMakeVisible(dial1);
     dial1.setSliderStyle(juce::Slider::SliderStyle::Rotary);
     dial1.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 32, 16);
-    dial1.setRange(0, 4, 1);
+    dial1.setRange(0, 3, 1);
     dial1.setColour(juce::Slider::ColourIds::rotarySliderFillColourId, juce::Colours::white);
     dial1.onValueChange = [this]()
         {
-            float dialValue = dial1.getValue();
+            int dialValue = dial1.getValue();
 
-            if (dialValue < 1.0)
+            if (dialValue == 0)
             {
                 audioProcessor.audioSynth.SetDistortionFunction(FunctionType::none);
             }
-            else if (dialValue >= 1.0 && dialValue < 2.0)
+            else if (dialValue == 1.0 )
             {
                 audioProcessor.audioSynth.SetDistortionFunction(FunctionType::softClip);
             }
-            else if (dialValue >= 2.0 && dialValue <= 3.0)
+            else if (dialValue == 2.0 )
             {
                 audioProcessor.audioSynth.SetDistortionFunction(FunctionType::hardClip);
             }
-            else if (dialValue >= 2.5 && dialValue <= 4.0)
+            else if (dialValue == 3)
             {
                 audioProcessor.audioSynth.SetDistortionFunction(FunctionType::waveFold);
             }
