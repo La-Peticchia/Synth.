@@ -41,7 +41,7 @@ GCB_SynthAudioProcessorEditor::GCB_SynthAudioProcessorEditor (GCB_SynthAudioProc
             }
             else if (dialValue >= 2.0 && dialValue <= 3.0)
             {
-                audioProcessor.audioSynth.SetOscillatorWave(WaveType::triangular);
+                audioProcessor.audioSynth.SetOscillatorWave(WaveType::squareWave);
             }
 
         };
@@ -58,19 +58,19 @@ GCB_SynthAudioProcessorEditor::GCB_SynthAudioProcessorEditor (GCB_SynthAudioProc
         {
             float dialValue = dialDistortion.getValue();
 
-            if (dialValue < 1.0)
+            if (dialValue == 0)
             {
                 audioProcessor.audioSynth.SetDistortionFunction(FunctionType::none);
             }
-            else if (dialValue >= 1.0 && dialValue < 2.0)
+            else if (dialValue == 1.0 )
             {
                 audioProcessor.audioSynth.SetDistortionFunction(FunctionType::softClip);
             }
-            else if (dialValue >= 2.0 && dialValue <= 3.0)
+            else if (dialValue == 2.0 )
             {
                 audioProcessor.audioSynth.SetDistortionFunction(FunctionType::hardClip);
             }
-            else if (dialValue >= 2.5 && dialValue <= 4.0)
+            else if (dialValue == 3)
             {
                 audioProcessor.audioSynth.SetDistortionFunction(FunctionType::waveFold);
             }

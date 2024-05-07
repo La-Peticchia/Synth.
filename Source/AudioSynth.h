@@ -15,6 +15,7 @@
 
 #pragma once
 
+#define SUSTAIN_VALUE 0.5f
 struct Sound : public juce::SynthesiserSound
 {
     Sound() {}
@@ -35,17 +36,18 @@ private:
 
 };
 
+
 class Voice : public juce::SynthesiserVoice {
     
     public:
 
         Voice() {
-            attacks.add(new Ramp(1.5f, 1.f));
-            attacks.add(new Ramp(1.f, 1.f));
 
-            releases.add(new Ramp(0.f, 1.f));
-            env.setSampleRate(getSampleRate());
-            env.setParameters(juce::ADSR::Parameters(1.f, 0.3f, 0.7f, 1.f));
+            attacks.add(new Ramp(1.f, 1.f));
+            attacks.add(new Ramp(SUSTAIN_VALUE, 1.f));
+
+            releases.add(new Ramp(0.3f, 1.f));
+            releases.add(new Ramp(0.f, 0.5f));
         }
 
 
@@ -56,12 +58,25 @@ class Voice : public juce::SynthesiserVoice {
         void startNote(int midiNoteNumber, float velocity,
             juce::SynthesiserSound*, int /*currentPitchWheelPosition*/) override
         {
-            DBG("note on: " << midiNoteNumber);
-            env.noteOn();
+            for (int i = 0; i < audioSynthRef->getNumVoices(); i++) {
+                auto synthVoice = (Voice*)audioSynthRef->getVoice(i);
+                if (i != voiceIndex)
+                    if (synthVoice->getCurrentlyPlayingNote() == midiNoteNumber) {
+                        //DBG("Chiamante: " << voiceIndex);
+                        //DBG("MidiNote: " << midiNoteNumber);
+                        //DBG("Currently Playing: " << synthVoice->getCurrentlyPlayingNote());
+                        //synthVoice->stopNote(velocity, false);
+                        clearCurrentNote();
+                        synthVoice->startNote(midiNoteNumber, velocity, nullptr, 0.0f);
+                        return;
+                    }
+            }
+            
+            //DBG("note on: " << midiNoteNumber);
+            //DBG("Gain: " << gain.getCurrentValue());
+
             processorChain.get<oscIndex>().setFrequency(juce::MidiMessage::getMidiNoteInHertz(midiNoteNumber));
-            
-            /* ADSR try */
-            
+
             rampCount = 0;
 
             if (currentState == release) {
@@ -71,6 +86,7 @@ class Voice : public juce::SynthesiserVoice {
                 {
 
                     if ((attacks[i]->targetValue > prevTargetValue && attacks[i]->targetValue > gain.getCurrentValue()) || (attacks[i]->targetValue < prevTargetValue && attacks[i]->targetValue < gain.getCurrentValue()) ) {
+                        //gain.reset(getSampleRate(), attacks[i]->duration);
                         gain.setTargetValue(attacks[i]->targetValue);
                         break;
                     }
@@ -81,32 +97,36 @@ class Voice : public juce::SynthesiserVoice {
             }
             else
             {
+                gain.reset(getSampleRate(), attacks[0]->duration);
                 gain.setTargetValue(attacks[0]->targetValue);
                 rampCount++;
             }
             
-
+            DBG("NoteOn -> VoiceIndex: " << voiceIndex << " | Gain: " << gain.getCurrentValue());
 
             currentState = attack;
+
         }
     
         void stopNote(float /*velocity*/, bool allowTailOff) override
         {
-            env.noteOff();
-            DBG("note off");
+            if (currentState == idle || currentState == release)
+                return;
 
-            currentState = release;
-            /* ADSR try
-            
+            DBG("Note off -> VoiceIndex: " << voiceIndex << " | Gain: " << gain.getCurrentValue());
+            //DBG("Gain: " << gain.getCurrentValue());
+
+
             rampCount = 0;
 
             if (currentState == attack) {
 
-                float prevTargetValue = 0;
+                float prevTargetValue = 1;
                 for (int i = 0; i < releases.size(); i++)
                 {
 
                     if ((releases[i]->targetValue > prevTargetValue && releases[i]->targetValue > gain.getCurrentValue()) || (releases[i]->targetValue < prevTargetValue && releases[i]->targetValue < gain.getCurrentValue())) {
+                        //gain.reset(getSampleRate(), releases[i]->duration);
                         gain.setTargetValue(releases[i]->targetValue);
                         break;
                     }
@@ -115,20 +135,20 @@ class Voice : public juce::SynthesiserVoice {
                     prevTargetValue = releases[i]->targetValue;
                 }
             }
+            else 
+            {
+                gain.reset(getSampleRate(), releases[0]->duration);
+                gain.setTargetValue(releases[0]->targetValue);
+                rampCount++;
+            }
+
             currentState = release;
-            */
-
-
-            //Debug
-            gain.setCurrentAndTargetValue(0);
-            clearCurrentNote();
 
         }
 
         void prepare(const juce::dsp::ProcessSpec& spec)
         {
             tempBlock = juce::dsp::AudioBlock<float>(heapBlock, spec.numChannels, spec.maximumBlockSize);
-            gain.reset(getSampleRate(), attacks[0]->duration);
             gain.setCurrentAndTargetValue(0);
             processorChain.prepare(spec);
             
@@ -147,10 +167,10 @@ class Voice : public juce::SynthesiserVoice {
 
             for (int i = 0; i < nChannels; i++)
                 blockPointers.add(block.getChannelPointer(i));
-            if(!juce::approximatelyEqual(gain.getCurrentValue(), 0.f))
-            DBG(gain.getCurrentValue());
+            //if(!juce::approximatelyEqual(gain.getCurrentValue(), 0.f))
+            //DBG(gain.getCurrentValue());
 
-            if (currentState == attack) {
+            if (currentState == attack || currentState == sustain) {
 
 
                 while (nSamp--) {
@@ -160,14 +180,14 @@ class Voice : public juce::SynthesiserVoice {
                         blockPointers[i][sampleIndex] *= nextValue;
 
                     sampleIndex++;
-                    //DBG(std::fabs(gain.getTargetValue() - gain.getCurrentValue()));
-                    if (std::fabs(gain.getTargetValue() - gain.getCurrentValue()) < 0.01f) {
+                    if (juce::approximatelyEqual(std::fabs(gain.getTargetValue() - gain.getCurrentValue()), 0.f)) {
                         if (rampCount == attacks.size()) {
+                            //DBG("Entered Sustain -> VoiceIndex: " << voiceIndex);
                             currentState = sustain;
-                            break;
+                            continue;
                         }
 
-                        //gain.reset(getSampleRate(), attacks[rampCount]->duration);
+                        gain.reset(getSampleRate(), attacks[rampCount]->duration);
                         gain.setTargetValue(attacks[rampCount++]->targetValue);
                     }
                 }
@@ -181,24 +201,27 @@ class Voice : public juce::SynthesiserVoice {
                         blockPointers[i][sampleIndex] *= nextValue;
 
                     sampleIndex++;
-                    //DBG(std::fabs(gain.getTargetValue() - gain.getCurrentValue()));
-                    if (std::fabs(gain.getTargetValue() - gain.getCurrentValue()) < 0.01f) {
-                        if (rampCount == attacks.size()) {
-                            currentState = sustain;
+                    if (juce::approximatelyEqual(std::fabs(gain.getTargetValue() - gain.getCurrentValue()), 0.f)){
+                        if (rampCount == releases.size()) {
+                            DBG("Entered Idle -> VoiceIndex: " << voiceIndex);
+                            gain.setCurrentAndTargetValue(0.f);
+                            currentState = idle;
                             break;
                         }
 
-                        //gain.reset(getSampleRate(), attacks[rampCount]->duration);
-                        gain.setTargetValue(attacks[rampCount++]->targetValue);
+                        gain.reset(getSampleRate(), releases[rampCount]->duration);
+                        gain.setTargetValue(releases[rampCount++]->targetValue);
                     }
                 }
             }
             
-            if(isKeyDown())
+            if(currentState != idle)
             juce::dsp::AudioBlock<float>(outputBuffer)
                 .getSubBlock((size_t)startSample, (size_t)numSamples)
                 .add(tempBlock);
-        
+            else
+                clearCurrentNote();
+
             /*
             auto pointer1 = block.getChannelPointer(0);
             auto pointer2 = block.getChannelPointer(1);
@@ -345,6 +368,11 @@ class Voice : public juce::SynthesiserVoice {
             return processorChain.get<distortionIndex>();
         }
 
+        void SetAudioSynthRef(juce::Synthesiser* ref, int index) {
+            audioSynthRef = ref;
+            voiceIndex = index;
+        }
+
     private:
     
         enum
@@ -353,6 +381,9 @@ class Voice : public juce::SynthesiserVoice {
             distortionIndex
         };
         
+        juce::Synthesiser* audioSynthRef;
+        int voiceIndex;
+
         juce::dsp::ProcessorChain<CustomOscillator<float>, CustomDistortion<float>> processorChain;
         //enum
         //{
@@ -365,26 +396,26 @@ class Voice : public juce::SynthesiserVoice {
         juce::HeapBlock<char> heapBlock;
         juce::LinearSmoothedValue<float> gain { 0.0f };
         juce::ADSR env;
-        
 
         juce::OwnedArray<Ramp> attacks;
         juce::OwnedArray<Ramp> releases;
         int rampCount = 0;
 
-        envState currentState = silence;
+        envState currentState = idle;
 
-
+        
 };
 
 
 class AudioSynth : public juce::Synthesiser {
 public:
-    static const int maxVoiceNumb = 5;
-
+    static const int maxVoiceNumb = 10;
     AudioSynth() {
         for (int i = 0; i < maxVoiceNumb; i++) {
 
-            addVoice(new Voice);
+            auto voice = new Voice();
+            voice->SetAudioSynthRef(this, i);
+            addVoice(voice);
         }
         addSound(new Sound);
         setNoteStealingEnabled(true);
@@ -399,25 +430,24 @@ public:
     }
 
     void SetOscillatorWave(WaveType wave) {
-        for (int i = 0; i < voices.size(); i++)
-            dynamic_cast<Voice*>(voices[i])->GetOscillator().SetWave(wave);
+        for (int i = 0; i < getNumVoices(); i++)
+            dynamic_cast<Voice*>(getVoice(i))->GetOscillator().SetWave(wave);
     }
 
     void SetDistortionFunction(FunctionType func) {
-        for (int i = 0; i < voices.size(); i++)
-            dynamic_cast<Voice*>(voices[i])->GetDistortion().SetFunction(func);
+        for (int i = 0; i < getNumVoices(); i++)
+            dynamic_cast<Voice*>(getVoice(i))->GetDistortion().SetFunction(func);
     }
 
     void SetDistortionBias(float bias) {
-        for (int i = 0; i < voices.size(); i++)
-            dynamic_cast<Voice*>(voices[i])->GetDistortion().SetBias(bias);
+        for (int i = 0; i < getNumVoices(); i++)
+            dynamic_cast<Voice*>(getVoice(i))->GetDistortion().SetBias(bias);
     }
 
     void SetDistortionGain(float gain) {
-        for (int i = 0; i < voices.size(); i++)
-            dynamic_cast<Voice*>(voices[i])->GetDistortion().SetGain(gain);
+        for (int i = 0; i < getNumVoices(); i++)
+            dynamic_cast<Voice*>(getVoice(i))->GetDistortion().SetGain(gain);
     }
-
 
 private:
     

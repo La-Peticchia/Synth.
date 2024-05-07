@@ -14,7 +14,7 @@ enum envState { //generatori
     attack,
     sustain,
     release,
-    silence
+    idle
 };
 
 enum WaveType { //oscillator
