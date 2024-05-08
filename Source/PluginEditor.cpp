@@ -127,11 +127,31 @@ GCB_SynthAudioProcessorEditor::GCB_SynthAudioProcessorEditor (GCB_SynthAudioProc
     addAndMakeVisible(border2);
     border2.setText("Filter");
 
-    addAndMakeVisible(buttonOscillator);
-    buttonOscillator.setButtonText("Aggiungi Inviluppo");
+    addAndMakeVisible(buttonOscillatorAdd);
+    buttonOscillatorAdd.setButtonText("Aggiungi Inviluppo");
+    buttonOscillatorAdd.onClick = [this]() {
+        if (verticalSliders.size() < maxVerticalSliders) {
+            auto slider = std::make_unique<juce::Slider>();// Crea uno slider verticale e lo assegna a std::unique_ptr
+            slider->setSliderStyle(juce::Slider::SliderStyle::LinearVertical);
+            slider->setTextBoxStyle(juce::Slider::TextBoxBelow, false, 32, 16);
+            addAndMakeVisible(*slider);
+            verticalSliders.push_back(std::move(slider));// Aggiunge lo slider verticale al vettore
+            resized();// Ridisegna la finestra
+        }
+        };
+    addAndMakeVisible(buttonOscillatorRemove);
+    buttonOscillatorRemove.setButtonText("Togli Inviluppo");
+    buttonOscillatorRemove.onClick = [this]() {
+        if (!verticalSliders.empty()) {
+            verticalSliders.pop_back(); // Rimuove l'ultimo slider dal vettore
+            resized(); // Ridisegna la finestra
+        }
+        };
   
     addAndMakeVisible(buttonFilter);
     buttonFilter.setButtonText("Aggiungi inviluppo");
+    addAndMakeVisible(buttonFilter1);
+    buttonFilter1.setButtonText("Togli inviluppo");
 
     //metodi per resizare la window
     //getConstrainer()->setFixedAspectRatio(2.0);
@@ -165,11 +185,8 @@ void GCB_SynthAudioProcessorEditor::resized()
     // Imposta le dimensioni e la posizione della tastiera MIDI
     keyboardComp.setBounds(0, getHeight() - keyboardHeight, getWidth(), keyboardHeight);
 
-    // Calcola la larghezza dei bordi
     auto borderWidth = getWidth() * 0.32;
-
-    // Altezza dei bordi
-    auto borderHeight = getHeight() - topMargin * 0.1 - dialOscillator.getY() - dialOscillator.getHeight() - dialSpacing - 135;
+    auto borderHeight = getHeight() - topMargin * 0.1 - dialSpacing - 135;
 
     // Imposta le dimensioni e la posizione dei bordi
     border.setBounds((getWidth() - borderWidth * 3 - dialSpacing * 2) / 2, topMargin * 0.1, borderWidth, borderHeight);
@@ -183,21 +200,29 @@ void GCB_SynthAudioProcessorEditor::resized()
     dialGain.setBounds(border1.getX() + (border1.getWidth() - dialSize) / 2, topMargin * 1.5, dialSize, dialSize);
     dialFilter.setBounds(border2.getX() + (border2.getWidth() - dialSize) / 2, topMargin * 0.3, dialSize, dialSize);
 
-    // Aggiorna la posizione delle etichette
+    // Imposta la posizione delle etichette
     label1.setBounds(dialDistortion.getX() + (dialSize - label1.getWidth()) + 18, dialDistortion.getY() - 18, label1.getWidth(), 25);
     label2.setBounds(dialBias.getX() + (dialSize - label2.getWidth()) + 33, dialBias.getY() - 18, label2.getWidth(), 25);
     label3.setBounds(dialGain.getX() + (dialSize - label3.getWidth()) + 33, dialGain.getY() - 18, label3.getWidth(), 25);
 
-    // Imposta le dimensioni e la posizione dei bottoni
-    auto buttonWidth = 100;
+    
+    auto buttonWidth = 80;
     auto buttonHeight = 30;
     auto buttonSpacing = 20;
 
-    // Posizione del bottone sotto al dialOscillator
-    buttonOscillator.setBounds(dialOscillator.getX(), dialOscillator.getBottom() + buttonSpacing, buttonWidth, buttonHeight);
+    // Imposta le dimensioni e la posizione dei bottoni
+    buttonOscillatorAdd.setBounds(dialOscillator.getX() - buttonWidth, dialOscillator.getBottom() + buttonSpacing, buttonWidth, buttonHeight);
+    buttonOscillatorRemove.setBounds(dialOscillator.getRight(), dialOscillator.getBottom() + buttonSpacing, buttonWidth, buttonHeight);
+    buttonFilter.setBounds(dialFilter.getX() - buttonWidth, dialFilter.getBottom() + buttonSpacing, buttonWidth, buttonHeight);
+    buttonFilter1.setBounds(dialFilter.getRight(), dialFilter.getBottom() + buttonSpacing, buttonWidth, buttonHeight);
 
-    // Posizione del bottone sotto al dialFilter
-    buttonFilter.setBounds(dialFilter.getX(), dialFilter.getBottom() + buttonSpacing, buttonWidth, buttonHeight);
+    auto sliderWidth = border.getWidth() / maxVerticalSliders;
+    auto sliderHeight = border.getHeight() * 0.5;
+
+    for (int i = 0; i < verticalSliders.size(); ++i) {
+        auto slider = verticalSliders[i].get();
+        slider->setBounds(border.getX() + i * sliderWidth, border.getY() + sliderHeight + 30, sliderWidth, sliderHeight - 80);
+    }
 
 }
 

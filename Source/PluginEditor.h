@@ -35,7 +35,10 @@ private:
     juce::Slider dialOscillator, dialDistortion, dialFilter, dialBias, dialGain;
     juce::Label label1, label2, label3;
     juce::GroupComponent border, border1, border2;
-    juce::TextButton buttonOscillator, buttonFilter;
+    juce::TextButton buttonOscillatorAdd, buttonOscillatorRemove, buttonFilter, buttonFilter1;
+    std::vector<std::unique_ptr<juce::Slider>> verticalSliders;
+    int maxVerticalSliders = 5;
+
 
    /*class CustomLookAndFeel : public juce::LookAndFeel_V4
     {
