@@ -18,11 +18,10 @@ GCB_SynthAudioProcessorEditor::GCB_SynthAudioProcessorEditor (GCB_SynthAudioProc
     // editor's size to whatever you need it to be.
     addAndMakeVisible(keyboardComp);
     keyboardComp.setMidiChannel(2);
-    //CustomLookAndFeel customLookAndFeel;
+    
 
     //slider per l'oscillator
     addAndMakeVisible(dialOscillator);
-    //knob.setLookAndFeel(&customLookAndFeel);
     dialOscillator.setSliderStyle(juce::Slider::SliderStyle::Rotary);
     dialOscillator.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 32, 16);
     dialOscillator.setRange(0, 3, 1.5);
@@ -130,33 +129,53 @@ GCB_SynthAudioProcessorEditor::GCB_SynthAudioProcessorEditor (GCB_SynthAudioProc
     addAndMakeVisible(buttonOscillatorAdd);
     buttonOscillatorAdd.setButtonText("Aggiungi Inviluppo");
     buttonOscillatorAdd.onClick = [this]() {
-        if (verticalSliders.size() < maxVerticalSliders) {
+        if (oscillatorSliders.size() < maxVerticalSliders) {
             auto slider = std::make_unique<juce::Slider>();// Crea uno slider verticale e lo assegna a std::unique_ptr
             slider->setSliderStyle(juce::Slider::SliderStyle::LinearVertical);
-            slider->setTextBoxStyle(juce::Slider::TextBoxBelow, false, 32, 16);
+            slider->setTextBoxStyle(juce::Slider::TextBoxBelow, false, 40, 20);
+            slider->setColour(juce::Slider::ColourIds::trackColourId, juce::Colours::whitesmoke);
+            slider->setRange(0, 3, 1.5);
             addAndMakeVisible(*slider);
-            verticalSliders.push_back(std::move(slider));// Aggiunge lo slider verticale al vettore
+            oscillatorSliders.push_back(std::move(slider));// Aggiunge lo slider verticale al vettore
             resized();// Ridisegna la finestra
         }
         };
     addAndMakeVisible(buttonOscillatorRemove);
     buttonOscillatorRemove.setButtonText("Togli Inviluppo");
     buttonOscillatorRemove.onClick = [this]() {
-        if (!verticalSliders.empty()) {
-            verticalSliders.pop_back(); // Rimuove l'ultimo slider dal vettore
+        if (!oscillatorSliders.empty()) {
+            oscillatorSliders.pop_back(); // Rimuove l'ultimo slider dal vettore
             resized(); // Ridisegna la finestra
         }
         };
   
-    addAndMakeVisible(buttonFilter);
-    buttonFilter.setButtonText("Aggiungi inviluppo");
-    addAndMakeVisible(buttonFilter1);
-    buttonFilter1.setButtonText("Togli inviluppo");
+    addAndMakeVisible(buttonFilterAdd);
+    buttonFilterAdd.setButtonText("Aggiungi inviluppo");
+    buttonFilterAdd.onClick = [this]() {
+        if (filterSliders.size() < maxVerticalSliders) {
+            auto slider = std::make_unique<juce::Slider>();// Crea uno slider verticale e lo assegna a std::unique_ptr
+            slider->setSliderStyle(juce::Slider::SliderStyle::LinearVertical);
+            slider->setTextBoxStyle(juce::Slider::TextBoxBelow, false, 40, 20);
+            slider->setColour(juce::Slider::ColourIds::trackColourId, juce::Colours::whitesmoke);
+            slider->setRange(0, 3, 1.5);
+            addAndMakeVisible(*slider);
+            filterSliders.push_back(std::move(slider));// Aggiunge lo slider verticale al vettore
+            resized();// Ridisegna la finestra
+        }
+        };
+    addAndMakeVisible(buttonFilterRemove);
+    buttonFilterRemove.setButtonText("Togli inviluppo");
+    buttonFilterRemove.onClick = [this]() {
+        if (!filterSliders.empty()) {
+            filterSliders.pop_back(); // Rimuove l'ultimo slider dal vettore
+            resized(); // Ridisegna la finestra
+        }
+        };
 
     //metodi per resizare la window
     //getConstrainer()->setFixedAspectRatio(2.0);
     //setResizable(true, true);
-    //setResizeLimits(500,250,1200,600);
+    //setResizeLimits(800,400,1200,600);
     setSize (1000, 550);
 
 }
@@ -205,7 +224,6 @@ void GCB_SynthAudioProcessorEditor::resized()
     label2.setBounds(dialBias.getX() + (dialSize - label2.getWidth()) + 33, dialBias.getY() - 18, label2.getWidth(), 25);
     label3.setBounds(dialGain.getX() + (dialSize - label3.getWidth()) + 33, dialGain.getY() - 18, label3.getWidth(), 25);
 
-    
     auto buttonWidth = 80;
     auto buttonHeight = 30;
     auto buttonSpacing = 20;
@@ -213,15 +231,20 @@ void GCB_SynthAudioProcessorEditor::resized()
     // Imposta le dimensioni e la posizione dei bottoni
     buttonOscillatorAdd.setBounds(dialOscillator.getX() - buttonWidth, dialOscillator.getBottom() + buttonSpacing, buttonWidth, buttonHeight);
     buttonOscillatorRemove.setBounds(dialOscillator.getRight(), dialOscillator.getBottom() + buttonSpacing, buttonWidth, buttonHeight);
-    buttonFilter.setBounds(dialFilter.getX() - buttonWidth, dialFilter.getBottom() + buttonSpacing, buttonWidth, buttonHeight);
-    buttonFilter1.setBounds(dialFilter.getRight(), dialFilter.getBottom() + buttonSpacing, buttonWidth, buttonHeight);
+    buttonFilterAdd.setBounds(dialFilter.getX() - buttonWidth, dialFilter.getBottom() + buttonSpacing, buttonWidth, buttonHeight);
+    buttonFilterRemove.setBounds(dialFilter.getRight(), dialFilter.getBottom() + buttonSpacing, buttonWidth, buttonHeight);
 
     auto sliderWidth = border.getWidth() / maxVerticalSliders;
     auto sliderHeight = border.getHeight() * 0.5;
 
-    for (int i = 0; i < verticalSliders.size(); ++i) {
-        auto slider = verticalSliders[i].get();
+    for (int i = 0; i < oscillatorSliders.size(); ++i) {
+        auto slider = oscillatorSliders[i].get();
         slider->setBounds(border.getX() + i * sliderWidth, border.getY() + sliderHeight + 30, sliderWidth, sliderHeight - 80);
+    }
+
+    for (int i = 0; i < filterSliders.size(); ++i) {
+        auto slider = filterSliders[i].get();
+        slider->setBounds(border2.getX() + i * sliderWidth, border2.getY() + sliderHeight + 30, sliderWidth, sliderHeight - 80);
     }
 
 }
