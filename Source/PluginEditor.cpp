@@ -126,51 +126,27 @@ GCB_SynthAudioProcessorEditor::GCB_SynthAudioProcessorEditor (GCB_SynthAudioProc
     addAndMakeVisible(border2);
     border2.setText("Filter");
 
-    addAndMakeVisible(buttonOscillatorAdd);
-    buttonOscillatorAdd.setButtonText("Aggiungi Inviluppo");
-    buttonOscillatorAdd.onClick = [this]() {
-        if (oscillatorSliders.size() < maxVerticalSliders) {
-            auto slider = std::make_unique<juce::Slider>();// Crea uno slider verticale e lo assegna a std::unique_ptr
-            slider->setSliderStyle(juce::Slider::SliderStyle::LinearVertical);
-            slider->setTextBoxStyle(juce::Slider::TextBoxBelow, false, 40, 20);
-            slider->setColour(juce::Slider::ColourIds::trackColourId, juce::Colours::whitesmoke);
-            slider->setRange(0, 3, 1.5);
-            addAndMakeVisible(*slider);
-            oscillatorSliders.push_back(std::move(slider));// Aggiunge lo slider verticale al vettore
-            resized();// Ridisegna la finestra
-        }
-        };
-    addAndMakeVisible(buttonOscillatorRemove);
-    buttonOscillatorRemove.setButtonText("Togli Inviluppo");
-    buttonOscillatorRemove.onClick = [this]() {
-        if (!oscillatorSliders.empty()) {
-            oscillatorSliders.pop_back(); // Rimuove l'ultimo slider dal vettore
-            resized(); // Ridisegna la finestra
-        }
-        };
+    //slider per l'inviluppo dell'oscillator
+    for (int i = 0; i < maxVerticalSliders; ++i) {
+        auto slider = std::make_unique<juce::Slider>();// Crea uno slider verticale e lo assegna a std::unique_ptr
+        slider->setSliderStyle(juce::Slider::SliderStyle::LinearVertical);
+        slider->setTextBoxStyle(juce::Slider::TextBoxBelow, false, 40, 20);
+        slider->setColour(juce::Slider::ColourIds::trackColourId, juce::Colours::whitesmoke);
+        slider->setRange(0, 3, 1.5);
+        addAndMakeVisible(*slider);
+        oscillatorSliders.push_back(std::move(slider));// Aggiunge lo slider verticale al vettore
+    }
   
-    addAndMakeVisible(buttonFilterAdd);
-    buttonFilterAdd.setButtonText("Aggiungi inviluppo");
-    buttonFilterAdd.onClick = [this]() {
-        if (filterSliders.size() < maxVerticalSliders) {
-            auto slider = std::make_unique<juce::Slider>();// Crea uno slider verticale e lo assegna a std::unique_ptr
-            slider->setSliderStyle(juce::Slider::SliderStyle::LinearVertical);
-            slider->setTextBoxStyle(juce::Slider::TextBoxBelow, false, 40, 20);
-            slider->setColour(juce::Slider::ColourIds::trackColourId, juce::Colours::whitesmoke);
-            slider->setRange(0, 3, 1.5);
-            addAndMakeVisible(*slider);
-            filterSliders.push_back(std::move(slider));// Aggiunge lo slider verticale al vettore
-            resized();// Ridisegna la finestra
-        }
-        };
-    addAndMakeVisible(buttonFilterRemove);
-    buttonFilterRemove.setButtonText("Togli inviluppo");
-    buttonFilterRemove.onClick = [this]() {
-        if (!filterSliders.empty()) {
-            filterSliders.pop_back(); // Rimuove l'ultimo slider dal vettore
-            resized(); // Ridisegna la finestra
-        }
-        };
+    //slider per l'inviluppo del filter
+    for (int i = 0; i < maxVerticalSliders; ++i) {
+        auto slider = std::make_unique<juce::Slider>();// Crea uno slider verticale e lo assegna a std::unique_ptr
+        slider->setSliderStyle(juce::Slider::SliderStyle::LinearVertical);
+        slider->setTextBoxStyle(juce::Slider::TextBoxBelow, false, 40, 20);
+        slider->setColour(juce::Slider::ColourIds::trackColourId, juce::Colours::whitesmoke);
+        slider->setRange(0, 3, 1.5);
+        addAndMakeVisible(*slider);
+        filterSliders.push_back(std::move(slider));// Aggiunge lo slider verticale al vettore
+    }
 
     //metodi per resizare la window
     //getConstrainer()->setFixedAspectRatio(2.0);
@@ -223,16 +199,6 @@ void GCB_SynthAudioProcessorEditor::resized()
     label1.setBounds(dialDistortion.getX() + (dialSize - label1.getWidth()) + 18, dialDistortion.getY() - 18, label1.getWidth(), 25);
     label2.setBounds(dialBias.getX() + (dialSize - label2.getWidth()) + 33, dialBias.getY() - 18, label2.getWidth(), 25);
     label3.setBounds(dialGain.getX() + (dialSize - label3.getWidth()) + 33, dialGain.getY() - 18, label3.getWidth(), 25);
-
-    auto buttonWidth = 80;
-    auto buttonHeight = 30;
-    auto buttonSpacing = 20;
-
-    // Imposta le dimensioni e la posizione dei bottoni
-    buttonOscillatorAdd.setBounds(dialOscillator.getX() - buttonWidth, dialOscillator.getBottom() + buttonSpacing, buttonWidth, buttonHeight);
-    buttonOscillatorRemove.setBounds(dialOscillator.getRight(), dialOscillator.getBottom() + buttonSpacing, buttonWidth, buttonHeight);
-    buttonFilterAdd.setBounds(dialFilter.getX() - buttonWidth, dialFilter.getBottom() + buttonSpacing, buttonWidth, buttonHeight);
-    buttonFilterRemove.setBounds(dialFilter.getRight(), dialFilter.getBottom() + buttonSpacing, buttonWidth, buttonHeight);
 
     auto sliderWidth = border.getWidth() / maxVerticalSliders;
     auto sliderHeight = border.getHeight() * 0.5;
