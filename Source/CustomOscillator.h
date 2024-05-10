@@ -66,24 +66,24 @@ public:
 
     void setFrequency(Type newValue, bool force = false)
     {
-        osc.setFrequency(newValue, force);     // [7]
+        osc.setFrequency(newValue, force);
     }
 
 
     void reset() noexcept
     {
-        osc.reset(); // [4]
+        osc.reset();
     }
 
     template <typename ProcessContext>
     void process(const ProcessContext& context) noexcept
     {
-        osc.process(context);       // [9]
+        osc.process(context);
     }
 
     void prepare(const juce::dsp::ProcessSpec& spec)
     {
-        osc.prepare(spec); // [3]
+        osc.prepare(spec);
     }
 
 

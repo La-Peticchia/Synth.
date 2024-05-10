@@ -9,13 +9,16 @@
 */
 
 #include <JuceHeader.h>
+#include "CustomFilter.h"
 #include "CustomOscillator.h"
 #include "CustomDistortion.h"
+#include "CustomEnvelope.h"
 #include "Enums.h"
 
 #pragma once
 
 #define SUSTAIN_VALUE 0.5f
+#define SAMPLE_SKIPS 5
 struct Sound : public juce::SynthesiserSound
 {
     Sound() {}
@@ -25,29 +28,25 @@ struct Sound : public juce::SynthesiserSound
 };
 
 
-struct Ramp {
-public:
-    float targetValue, duration;
-    Ramp(float tVal, float dur) {
-        targetValue = tVal;
-        duration = dur;
-    }
-private:
-
-};
-
-
 class Voice : public juce::SynthesiserVoice {
     
     public:
 
         Voice() {
+            //gainEnvGen.attacks.add(new Ramp(0.7f, 1.f));
+            gainEnvGen.attacks.add(new Ramp(SUSTAIN_VALUE, 1.f));
+            //gainEnvGen.releases.add(new Ramp(0.3f, 1.f));
+            gainEnvGen.releases.add(new Ramp(0.f, 0.5f));
 
-            attacks.add(new Ramp(1.f, 1.f));
-            attacks.add(new Ramp(SUSTAIN_VALUE, 1.f));
+            cutOffEnvGen.attacks.add(new Ramp(4.f, 0.1f ));
+            cutOffEnvGen.attacks.add(new Ramp(0.8f, 0.1f ));
+            cutOffEnvGen.releases.add(new Ramp(0.8f, 0.1f ));
 
-            releases.add(new Ramp(0.3f, 1.f));
-            releases.add(new Ramp(0.f, 0.5f));
+            //cutOffEnvGen.attacks.add(new Ramp(3.f, 0.1f ));
+            //cutOffEnvGen.attacks.add(new Ramp(0.3, 0.1f));
+            //cutOffEnvGen.releases.add(new Ramp(0.3, 0.1f));
+
+
         }
 
 
@@ -62,298 +61,87 @@ class Voice : public juce::SynthesiserVoice {
                 auto synthVoice = (Voice*)audioSynthRef->getVoice(i);
                 if (i != voiceIndex)
                     if (synthVoice->getCurrentlyPlayingNote() == midiNoteNumber) {
-                        //DBG("Chiamante: " << voiceIndex);
-                        //DBG("MidiNote: " << midiNoteNumber);
-                        //DBG("Currently Playing: " << synthVoice->getCurrentlyPlayingNote());
-                        //synthVoice->stopNote(velocity, false);
                         clearCurrentNote();
                         synthVoice->startNote(midiNoteNumber, velocity, nullptr, 0.0f);
                         return;
                     }
             }
-            
-            //DBG("note on: " << midiNoteNumber);
-            //DBG("Gain: " << gain.getCurrentValue());
 
             processorChain.get<oscIndex>().setFrequency(juce::MidiMessage::getMidiNoteInHertz(midiNoteNumber));
 
-            rampCount = 0;
 
-            if (currentState == release) {
-
-                float prevTargetValue = 0;
-                for (int i = 0; i < attacks.size(); i++)
-                {
-
-                    if ((attacks[i]->targetValue > prevTargetValue && attacks[i]->targetValue > gain.getCurrentValue()) || (attacks[i]->targetValue < prevTargetValue && attacks[i]->targetValue < gain.getCurrentValue()) ) {
-                        //gain.reset(getSampleRate(), attacks[i]->duration);
-                        gain.setTargetValue(attacks[i]->targetValue);
-                        break;
-                    }
-
-                    rampCount++;
-                    prevTargetValue = attacks[i]->targetValue;
-                }
-            }
-            else
-            {
-                gain.reset(getSampleRate(), attacks[0]->duration);
-                gain.setTargetValue(attacks[0]->targetValue);
-                rampCount++;
-            }
-            
-            DBG("NoteOn -> VoiceIndex: " << voiceIndex << " | Gain: " << gain.getCurrentValue());
-
-            currentState = attack;
+            gainEnvGen.Attack(getSampleRate()/ SAMPLE_SKIPS);
+            cutOffEnvGen.Attack(getSampleRate() / SAMPLE_SKIPS);
 
         }
     
         void stopNote(float /*velocity*/, bool allowTailOff) override
         {
-            if (currentState == idle || currentState == release)
+            if (gainEnvGen.GetCurrentState() == idle || gainEnvGen.GetCurrentState() == release)
                 return;
 
-            DBG("Note off -> VoiceIndex: " << voiceIndex << " | Gain: " << gain.getCurrentValue());
-            //DBG("Gain: " << gain.getCurrentValue());
-
-
-            rampCount = 0;
-
-            if (currentState == attack) {
-
-                float prevTargetValue = 1;
-                for (int i = 0; i < releases.size(); i++)
-                {
-
-                    if ((releases[i]->targetValue > prevTargetValue && releases[i]->targetValue > gain.getCurrentValue()) || (releases[i]->targetValue < prevTargetValue && releases[i]->targetValue < gain.getCurrentValue())) {
-                        //gain.reset(getSampleRate(), releases[i]->duration);
-                        gain.setTargetValue(releases[i]->targetValue);
-                        break;
-                    }
-
-                    rampCount++;
-                    prevTargetValue = releases[i]->targetValue;
-                }
-            }
-            else 
-            {
-                gain.reset(getSampleRate(), releases[0]->duration);
-                gain.setTargetValue(releases[0]->targetValue);
-                rampCount++;
-            }
-
-            currentState = release;
+            gainEnvGen.Release(getSampleRate() / SAMPLE_SKIPS);
+            cutOffEnvGen.Release(getSampleRate()/ SAMPLE_SKIPS);
 
         }
 
         void prepare(const juce::dsp::ProcessSpec& spec)
         {
             tempBlock = juce::dsp::AudioBlock<float>(heapBlock, spec.numChannels, spec.maximumBlockSize);
-            gain.setCurrentAndTargetValue(0);
+            gainEnvGen.ResetToZero();
+            cutOffEnvGen.ResetToZero();
             processorChain.prepare(spec);
-            
+            filter.prepare(spec);
         }
         void renderNextBlock(juce::AudioSampleBuffer& outputBuffer, int startSample, int numSamples) override
         {
+            if (gainEnvGen.GetCurrentState() == idle)
+                return;
+
             auto block = tempBlock.getSubBlock(0, (size_t)numSamples);
             block.clear();
             juce::dsp::ProcessContextReplacing<float> context(block);
             processorChain.process(context);
 
             int sampleIndex = 0, nSamp = numSamples, nChannels = outputBuffer.getNumChannels();
-
+            double noteInHertz = juce::MidiMessage::getMidiNoteInHertz(getCurrentlyPlayingNote()), sampleRate = getSampleRate();
 
             juce::Array<float*> blockPointers;
 
             for (int i = 0; i < nChannels; i++)
                 blockPointers.add(block.getChannelPointer(i));
-            //if(!juce::approximatelyEqual(gain.getCurrentValue(), 0.f))
-            //DBG(gain.getCurrentValue());
-
-            if (currentState == attack || currentState == sustain) {
 
 
-                while (nSamp--) {
-                    float nextValue = gain.getNextValue();
+            nSamp = (numSamples/SAMPLE_SKIPS) + 1;
+            sampleIndex = 0;
 
-                    for (auto i = nChannels; --i >= 0;)
-                        blockPointers[i][sampleIndex] *= nextValue;
+            //filter.setCutoffFrequency(noteInHertz);
 
+            while (nSamp--)
+            {   
+                float nextValue = gainEnvGen.GetNextValue(sampleRate/ SAMPLE_SKIPS);
+                filter.setCutoffFrequency(juce::jlimit(0., sampleRate / 2, noteInHertz * (cutOffEnvGen.GetNextValue(sampleRate))));
+                //filter.setResonance(cutOffEnvGen.GetNextValue(sampleRate));
+                for (auto i = SAMPLE_SKIPS; --i >= 0 && sampleIndex < numSamples;) {
+                    for (auto k = nChannels; --k >= 0;) 
+                        blockPointers[k][sampleIndex] = filter.processSample(k, blockPointers[k][sampleIndex] * nextValue)  ;
                     sampleIndex++;
-                    if (juce::approximatelyEqual(std::fabs(gain.getTargetValue() - gain.getCurrentValue()), 0.f)) {
-                        if (rampCount == attacks.size()) {
-                            //DBG("Entered Sustain -> VoiceIndex: " << voiceIndex);
-                            currentState = sustain;
-                            continue;
-                        }
-
-                        gain.reset(getSampleRate(), attacks[rampCount]->duration);
-                        gain.setTargetValue(attacks[rampCount++]->targetValue);
-                    }
-                }
-                
-            }
-            else if (currentState == release) {
-                while (nSamp--) {
-                    float nextValue = gain.getNextValue();
-
-                    for (auto i = nChannels; --i >= 0;)
-                        blockPointers[i][sampleIndex] *= nextValue;
-
-                    sampleIndex++;
-                    if (juce::approximatelyEqual(std::fabs(gain.getTargetValue() - gain.getCurrentValue()), 0.f)){
-                        if (rampCount == releases.size()) {
-                            DBG("Entered Idle -> VoiceIndex: " << voiceIndex);
-                            gain.setCurrentAndTargetValue(0.f);
-                            currentState = idle;
-                            break;
-                        }
-
-                        gain.reset(getSampleRate(), releases[rampCount]->duration);
-                        gain.setTargetValue(releases[rampCount++]->targetValue);
-                    }
                 }
             }
-            
-            if(currentState != idle)
-            juce::dsp::AudioBlock<float>(outputBuffer)
+
+
+
+
+            if (gainEnvGen.GetCurrentState() != idle) {
+                juce::dsp::AudioBlock<float>(outputBuffer)
                 .getSubBlock((size_t)startSample, (size_t)numSamples)
                 .add(tempBlock);
-            else
+
+            }
+            else {
+                gainEnvGen.ResetToZero();
                 clearCurrentNote();
-
-            /*
-            auto pointer1 = block.getChannelPointer(0);
-            auto pointer2 = block.getChannelPointer(1);
-            
-            if (currentState == attack)
-            {
-                //DBG("attacking");
-                //DBG(block.getNumSamples());
-
-                while (nSamp--)
-                {  
-                    //DBG(sampleIndex);
-
-                    pointer1[sampleIndex] *= 1.5f;
-                    pointer2[sampleIndex++] *= 1.5f;
-                }
-
             }
-            else if (currentState == release)
-            {
-                clearCurrentNote();
-                processorChain.get<gainIndex>().setGainLinear(0);
-            }
-        */
-
-            //if (env.isActive()) {
-            //    
-            //    env.applyEnvelopeToBuffer(outputBuffer,startSample, numSamples);
-            //}
-            //else
-            //{
-            //    clearCurrentNote();
-            //    processorChain.get<gainIndex>().setGainLinear(0);
-            //}
-
-            /* DEBUG 
-            //if(env.isActive())
-            //while (numSamples--)
-            //{
-            //    DBG(outputBuffer.getSample(0, startSample++));
-            //}
-
-            int numChannels = outputBuffer.getNumChannels();
-            juce::Array<float*> buffers;
-            for (size_t i = 0; i < numChannels; i++)
-                buffers.add(outputBuffer.getWritePointer(i));
-            outputBuffer.applyGainRamp(startSample, numSamples, c, c += (c <= 1)? 0.01f : 0);
-            */
-
-            /* ADSR try
-            if (currentState == attack) {
-
-                while (--nSamp >= 0) {
-                    float nextValue = gain.getNextValue();
-
-                    for (auto i = outputBuffer.getNumChannels(); --i >= 0;)
-                        outputBuffer.setSample(i, sampleIndex, outputBuffer.getSample(i, sampleIndex) * nextValue);
-
-
-                    //DBG(std::fabs(gain.getTargetValue() - gain.getCurrentValue()));
-                    sampleIndex++;
-                    if (std::fabs(gain.getTargetValue() - gain.getCurrentValue()) < 0.01f) {
-                        if (rampCount == attacks.size()) {
-                            currentState = sustain;
-                            goto Sustain;
-                        }
-
-                        //gain.reset(getSampleRate(), attacks[rampCount]->duration);
-                        gain.setTargetValue(attacks[rampCount++]->targetValue);
-                    }
-                }
-
-                if (rampCount == attacks.size())
-                    currentState = sustain;
-
-            }
-            else if(currentState == release)
-            {
-                while (--numSamples >= 0) {
-                    float nextValue = gain.getNextValue();
-                    for (auto i = outputBuffer.getNumChannels(); --i >= 0;)
-                        outputBuffer.setSample(i, sampleIndex, outputBuffer.getSample(i, sampleIndex) * nextValue);
-                    sampleIndex++;
-                    if (std::fabs(gain.getTargetValue() - gain.getCurrentValue()) < 0.01f) {
-                        if (rampCount == attacks.size()) {
-                            currentState = silence;
-                            goto Silence;
-                        }
-
-                        //gain.reset(getSampleRate(), releases[rampCount]->duration);
-                        gain.setTargetValue(releases[rampCount++]->targetValue);
-                    }
-
-                }
-
-                if (rampCount == releases.size())
-                    gain.setTargetValue(0.f);
-
-            }
-            else if(currentState == sustain)
-            {
-                Sustain:
-                while (--numSamples >= 0) {
-                    float nextValue = gain.getNextValue();
-                    for (auto i = outputBuffer.getNumChannels(); --i >= 0;)
-                        outputBuffer.setSample(i, sampleIndex, outputBuffer.getSample(i, sampleIndex) * nextValue);
-                    sampleIndex++;
-                }
-                return;
-            }
-            else
-            {
-                Silence:
-                if (gain.getTargetValue() != 0.f)
-                    gain.setTargetValue(0.f);
-
-                while (--numSamples >= 0) {
-                    float nextValue = gain.getNextValue();
-                    for (auto i = outputBuffer.getNumChannels(); --i >= 0;)
-                        outputBuffer.setSample(i, sampleIndex, outputBuffer.getSample(i, sampleIndex) * nextValue);
-                    sampleIndex++;
-                    
-                    if (std::fabs(gain.getTargetValue() - gain.getCurrentValue()) < 0.01f) {
-
-                        processorChain.get<gainIndex>().setGainLinear(0);
-                        clearCurrentNote();
-                    }
-                }
-                return;
-            }
-
-            */
 
         }
 
@@ -385,21 +173,13 @@ class Voice : public juce::SynthesiserVoice {
         int voiceIndex;
 
         juce::dsp::ProcessorChain<CustomOscillator<float>, CustomDistortion<float>> processorChain;
-        //enum
-        //{
-        //    oscIndex,
-        //    gainIndex
-        //};
-        //juce::dsp::ProcessorChain<CustomOscillator<float>, juce::dsp::Gain<float>> processorChain;
+        CustomFilter<float> filter;
+
 
         juce::dsp::AudioBlock<float> tempBlock;
         juce::HeapBlock<char> heapBlock;
-        juce::LinearSmoothedValue<float> gain { 0.0f };
-        juce::ADSR env;
 
-        juce::OwnedArray<Ramp> attacks;
-        juce::OwnedArray<Ramp> releases;
-        int rampCount = 0;
+        CustomEnvelope gainEnvGen, cutOffEnvGen;
 
         envState currentState = idle;
 
