@@ -11,8 +11,7 @@
 #pragma once
 #include <JuceHeader.h>
 #include "Enums.h"
-
-#define SUSTAIN_VALUE 0.5f
+#include "Defines.h"
 
 struct Ramp {
 public:
@@ -33,7 +32,7 @@ public:
 
     }
 
-    void Attack(double sampleRate) {
+    void Attack() {
         rampCount = 0;
 
         if (currentState == release) {
@@ -54,7 +53,7 @@ public:
         }
         else
         {
-            envValue.reset(sampleRate, attacks[0]->duration);
+            //envValue.reset(sampleRate, attacks[0]->duration);
             envValue.setTargetValue(attacks[0]->targetValue);
             rampCount++;
         }
@@ -65,7 +64,7 @@ public:
     }
 
 
-    void Release(double sampleRate) {
+    void Release() {
 
         rampCount = 0;
 
@@ -86,7 +85,7 @@ public:
         }
         else
         {
-            envValue.reset(sampleRate, releases[0]->duration);
+            //envValue.reset(sampleRate, releases[0]->duration);
             envValue.setTargetValue(releases[0]->targetValue);
             rampCount++;
         }
@@ -97,9 +96,8 @@ public:
 
     }
 
-    double GetNextValue(double sampleRate) {
+    double GetNextValue() {
         float nextVal = envValue.getNextValue();
-        //DBG(nextVal);
 
         if (juce::approximatelyEqual(std::fabs(envValue.getTargetValue() - envValue.getCurrentValue()), 0.f)) {
             if (rampCount == currentRamps.size()) {
@@ -115,16 +113,15 @@ public:
 
                 return nextVal;
             }
-
-            envValue.reset(sampleRate, currentRamps[rampCount]->duration);
             envValue.setTargetValue(currentRamps[rampCount++]->targetValue);
         }
         return nextVal;
 
     }
 
-    void ResetToZero() {
+    void ResetToZero(double sampleRate) {
         envValue.setCurrentAndTargetValue(0.f);
+        envValue.reset(sampleRate, DEFAULT_RAMP_DURATION);
     }
 
     float GetCurrentValue() {
@@ -132,7 +129,12 @@ public:
         
     }
 
-    envState GetCurrentState() {
+    void ChangeEnvDuration(float totalEnvDuration, double sampleRate) {
+        envValue.reset(sampleRate, totalEnvDuration/attacks.size());
+    }
+
+    EnvState GetCurrentState() {
+        
         return currentState;
     }
     
@@ -143,7 +145,7 @@ public:
 
 private:
 
-    envState currentState = idle;
+    EnvState currentState = idle;
     juce::LinearSmoothedValue<float> envValue{ 0.0f };
     juce::OwnedArray<Ramp> currentRamps;
 

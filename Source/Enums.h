@@ -10,7 +10,7 @@
 
 #pragma once
 
-enum envState { //generatori
+enum EnvState { //generatori
     attack,
     sustain,
     release,
@@ -29,4 +29,9 @@ enum FunctionType { //waveshaper
     hardClip,
     waveFold,
     none
+};
+
+enum EnvType {
+    gainEnv,
+    lpFilterEnv
 };
