@@ -44,6 +44,13 @@ GCB_SynthAudioProcessorEditor::GCB_SynthAudioProcessorEditor (GCB_SynthAudioProc
             }
 
         };
+
+    addAndMakeVisible(releseTimeSlider);
+    releseTimeSlider.setSliderStyle(juce::Slider::SliderStyle::LinearHorizontal);
+    releseTimeSlider.setRange(0, 10, 1);
+    releseTimeSlider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 32, 16);
+    releseTimeSlider.setColour(juce::Slider::ColourIds::trackColourId, juce::Colours::white);
+
     addAndMakeVisible(border);
     border.setText("Oscillator");
     
@@ -120,32 +127,50 @@ GCB_SynthAudioProcessorEditor::GCB_SynthAudioProcessorEditor (GCB_SynthAudioProc
     addAndMakeVisible(dialFilter);
     dialFilter.setSliderStyle(juce::Slider::SliderStyle::Rotary);
     dialFilter.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 32, 16);
-    dialFilter.setRange(0, 3, 1.5);
+    dialFilter.setRange(0.3, 1.3, 0.1);
     dialFilter.setColour(juce::Slider::ColourIds::rotarySliderFillColourId, juce::Colours::white);
 
     addAndMakeVisible(border2);
     border2.setText("Filter");
 
-    //slider per l'inviluppo dell'oscillator
-    for (int i = 0; i < maxVerticalSliders; ++i) {
+    for (int i = 0; i < maxVerticalSliders * 2; ++i) {
         auto slider = std::make_unique<juce::Slider>();// Crea uno slider verticale e lo assegna a std::unique_ptr
         slider->setSliderStyle(juce::Slider::SliderStyle::LinearVertical);
         slider->setTextBoxStyle(juce::Slider::TextBoxBelow, false, 40, 20);
         slider->setColour(juce::Slider::ColourIds::trackColourId, juce::Colours::whitesmoke);
-        slider->setRange(0, 3, 1.5);
+        slider->setRange(0, 1, 0.1);
         addAndMakeVisible(*slider);
-        oscillatorSliders.push_back(std::move(slider));// Aggiunge lo slider verticale al vettore
+
+        if (i < maxVerticalSliders) {
+            oscillatorSliders.push_back(std::move(slider)); // Aggiunge lo slider verticale al vettore per l'inviluppo dell'oscillatore
+        }
+        else {
+            releseOscillatorSliders.push_back(std::move(slider)); // Aggiunge lo slider verticale al vettore per l'inviluppo del filtro
+        }
     }
-  
+
+    addAndMakeVisible(oscillatorUp);
+    oscillatorUp.setText("Up");
+    oscillatorUp.setColour(juce::GroupComponent::ColourIds::outlineColourId,juce::Colours::grey);
+
     //slider per l'inviluppo del filter
-    for (int i = 0; i < maxVerticalSliders; ++i) {
+    for (int i = 0; i < maxVerticalSliders * 2; ++i) {
         auto slider = std::make_unique<juce::Slider>();// Crea uno slider verticale e lo assegna a std::unique_ptr
         slider->setSliderStyle(juce::Slider::SliderStyle::LinearVertical);
         slider->setTextBoxStyle(juce::Slider::TextBoxBelow, false, 40, 20);
         slider->setColour(juce::Slider::ColourIds::trackColourId, juce::Colours::whitesmoke);
-        slider->setRange(0, 3, 1.5);
+        slider->setRange(0.5, 5, 0.1);
         addAndMakeVisible(*slider);
-        filterSliders.push_back(std::move(slider));// Aggiunge lo slider verticale al vettore
+
+        if (i<maxVerticalSliders)
+        {
+            filterSliders.push_back(std::move(slider));// Aggiunge lo slider verticale al vettore
+        }
+        else
+        {
+            releseFilterSliders.push_back(std::move(slider));// Aggiunge lo slider verticale al vettore
+        }
+
     }
 
     //metodi per resizare la window
@@ -181,15 +206,17 @@ void GCB_SynthAudioProcessorEditor::resized()
     keyboardComp.setBounds(0, getHeight() - keyboardHeight, getWidth(), keyboardHeight);
 
     auto borderWidth = getWidth() * 0.32;
-    auto borderHeight = getHeight() - topMargin * 0.1 - dialSpacing - 135;
+    auto borderHeight = getHeight() - topMargin * 0.1 - dialSpacing - keyboardHeight;
 
     // Imposta le dimensioni e la posizione dei bordi
     border.setBounds((getWidth() - borderWidth * 3 - dialSpacing * 2) / 2, topMargin * 0.1, borderWidth, borderHeight);
     border1.setBounds(border.getRight() + dialSpacing, topMargin * 0.1, borderWidth, borderHeight);
     border2.setBounds(border1.getRight() + dialSpacing, topMargin * 0.1, borderWidth, borderHeight);
 
+
     // Imposta le dimensioni e la posizione dei dial all'interno dei bordi
-    dialOscillator.setBounds(border.getX() + (border.getWidth() - dialSize) / 2, topMargin * 0.3, dialSize, dialSize);
+    dialOscillator.setBounds(border.getX() + (border.getWidth() - dialSize * 2 - dialSpacing) / 2, topMargin * 0.3, dialSize, dialSize);
+    releseTimeSlider.setBounds(dialOscillator.getRight() + 20, topMargin * 0.3, 130, dialSize);
     dialDistortion.setBounds(border1.getX() + dialSpacing, topMargin * 0.6, dialSize, dialSize);
     dialBias.setBounds(border1.getX() + (border1.getWidth() - dialSize) * 0.9, topMargin * 0.6, dialSize, dialSize);
     dialGain.setBounds(border1.getX() + (border1.getWidth() - dialSize) / 2, topMargin * 1.5, dialSize, dialSize);
@@ -203,14 +230,22 @@ void GCB_SynthAudioProcessorEditor::resized()
     auto sliderWidth = border.getWidth() / maxVerticalSliders;
     auto sliderHeight = border.getHeight() * 0.5;
 
-    for (int i = 0; i < oscillatorSliders.size(); ++i) {
-        auto slider = oscillatorSliders[i].get();
-        slider->setBounds(border.getX() + i * sliderWidth, border.getY() + sliderHeight + 30, sliderWidth, sliderHeight - 80);
-    }
+    for (int i = 0; i < maxVerticalSliders; ++i) {
 
-    for (int i = 0; i < filterSliders.size(); ++i) {
-        auto slider = filterSliders[i].get();
-        slider->setBounds(border2.getX() + i * sliderWidth, border2.getY() + sliderHeight + 30, sliderWidth, sliderHeight - 80);
+        auto sliderOsc = oscillatorSliders[i].get();
+        auto sliderReleaseOsc = releseOscillatorSliders[i].get();
+        auto sliderFilter = filterSliders[i].get();
+        auto sliderReleaseFilter = releseFilterSliders[i].get();
+
+        oscillatorUp.setBounds(border.getX() + 20, border.getY() + sliderHeight - 55, sliderWidth + 175, sliderHeight - 70);
+
+        // Imposta la posizione dei slider per l'inviluppo dell'oscillatore
+        sliderOsc->setBounds(border.getX() + i * sliderWidth, border.getY() + sliderHeight - 40, sliderWidth, sliderHeight - 100);
+        sliderReleaseOsc->setBounds(border.getX() + i * sliderWidth, border.getY() + sliderHeight + 80, sliderWidth, sliderHeight - 100);
+
+        // Imposta la posizione dei slider per l'inviluppo del filtro
+        sliderFilter->setBounds(border2.getX() + i * sliderWidth, border2.getY() + sliderHeight - 40, sliderWidth, sliderHeight - 100);
+        sliderReleaseFilter->setBounds(border2.getX() + i * sliderWidth, border2.getY() + sliderHeight + 80, sliderWidth, sliderHeight - 100);
     }
 
 }
