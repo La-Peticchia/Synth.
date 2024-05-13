@@ -50,6 +50,17 @@ GCB_SynthAudioProcessorEditor::GCB_SynthAudioProcessorEditor (GCB_SynthAudioProc
     releseTimeSlider.setRange(0, 10, 1);
     releseTimeSlider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 32, 16);
     releseTimeSlider.setColour(juce::Slider::ColourIds::trackColourId, juce::Colours::white);
+    releseTimeSlider.onValueChange = [this]()
+        {
+            float durationValue = releseTimeSlider.getValue();
+            audioProcessor.audioSynth.ChangeEnvelopeDuration(EnvType::gainEnv, durationValue);
+        };
+
+
+    addAndMakeVisible(label4);
+    label4.setText("ReleseTimeEnvelope", juce::dontSendNotification);
+    label4.attachToComponent(&releseTimeSlider, false);
+    label4.setFont(12);
 
     addAndMakeVisible(border);
     border.setText("Oscillator");
@@ -167,7 +178,7 @@ GCB_SynthAudioProcessorEditor::GCB_SynthAudioProcessorEditor (GCB_SynthAudioProc
     dialFilter.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 32, 16);
     dialFilter.setRange(0.3, 1.3, 0.1);
     dialFilter.setColour(juce::Slider::ColourIds::rotarySliderFillColourId, juce::Colours::white);
-    dialGain.onValueChange = [this]() {
+    dialFilter.onValueChange = [this]() {
         double filterValue = dialFilter.getValue();
         audioProcessor.audioSynth.SetLPFilterResonance(filterValue);
         };
@@ -270,6 +281,7 @@ void GCB_SynthAudioProcessorEditor::resized()
     label1.setBounds(dialDistortion.getX() + (dialSize - label1.getWidth()) + 18, dialDistortion.getY() - 18, label1.getWidth(), 25);
     label2.setBounds(dialBias.getX() + (dialSize - label2.getWidth()) + 33, dialBias.getY() - 18, label2.getWidth(), 25);
     label3.setBounds(dialGain.getX() + (dialSize - label3.getWidth()) + 33, dialGain.getY() - 18, label3.getWidth(), 25);
+    label4.setBounds(releseTimeSlider.getX() + (releseTimeSlider.getWidth() - label4.getWidth()) + 8, releseTimeSlider.getY() - 5, label4.getWidth(),25);
 
     auto sliderWidth = border.getWidth() / maxVerticalSliders;
     auto sliderHeight = border.getHeight() * 0.5;

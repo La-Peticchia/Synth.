@@ -33,7 +33,7 @@ private:
     juce::MidiKeyboardComponent keyboardComp;
 
     juce::Slider dialOscillator, dialDistortion, dialFilter, dialBias, dialGain, releseTimeSlider;
-    juce::Label label1, label2, label3;
+    juce::Label label1, label2, label3, label4;
     juce::GroupComponent border, border1, border2, oscillatorAdd, oscillatorRelese, filterAdd, filterRelese;
     std::vector<std::unique_ptr<juce::Slider>> oscillatorSliders, filterSliders, releseOscillatorSliders, releseFilterSliders;
     int maxVerticalSliders = 3;
