@@ -53,6 +53,44 @@ GCB_SynthAudioProcessorEditor::GCB_SynthAudioProcessorEditor (GCB_SynthAudioProc
 
     addAndMakeVisible(border);
     border.setText("Oscillator");
+
+    for (int i = 0; i < maxVerticalSliders * 2; ++i) {
+        auto slider = std::make_unique<juce::Slider>();// Crea uno slider verticale e lo assegna a std::unique_ptr
+        slider->setSliderStyle(juce::Slider::SliderStyle::LinearVertical);
+        slider->setTextBoxStyle(juce::Slider::TextBoxBelow, false, 30, 15);
+        slider->setColour(juce::Slider::ColourIds::trackColourId, juce::Colours::whitesmoke);
+        slider->setRange(0, 1, 0.1);
+        addAndMakeVisible(*slider);
+
+        if (i < maxVerticalSliders) {
+            oscillatorSliders.push_back(std::move(slider)); // Aggiunge lo slider verticale al vettore per l'inviluppo dell'oscillatore
+            auto* currentSlider = oscillatorSliders.back().get(); // Ottengo un puntatore grezzo allo slider corrente
+            currentSlider->onValueChange = [currentSlider, this]() {
+                float sliderValue = currentSlider->getValue();
+                audioProcessor.audioSynth.AddEnvelopeRamp(EnvType::gainEnv, EnvState::attack, sliderValue);
+
+                };
+        }
+        else {
+            releseOscillatorSliders.push_back(std::move(slider)); // Aggiunge lo slider verticale al vettore per l'inviluppo del filtro
+            auto* currentSlider = releseOscillatorSliders.back().get();
+            currentSlider->onValueChange = [currentSlider, this]() {
+                float sliderValue = currentSlider->getValue();
+                audioProcessor.audioSynth.AddEnvelopeRamp(EnvType::gainEnv, EnvState::release, sliderValue);
+
+                };
+        }
+    }
+
+    addAndMakeVisible(oscillatorAdd);
+    oscillatorAdd.setText("AddEnvelope");
+    oscillatorAdd.setColour(juce::GroupComponent::ColourIds::outlineColourId, juce::Colours::indianred);
+    oscillatorAdd.setTextLabelPosition(juce::Justification::centred);
+
+    addAndMakeVisible(oscillatorRelese);
+    oscillatorRelese.setText("ReleseEnvelope");
+    oscillatorRelese.setColour(juce::GroupComponent::ColourIds::outlineColourId, juce::Colours::cyan);
+    oscillatorRelese.setTextLabelPosition(juce::Justification::centred);
     
     //slider per la distorzione
     addAndMakeVisible(dialDistortion);
@@ -123,41 +161,25 @@ GCB_SynthAudioProcessorEditor::GCB_SynthAudioProcessorEditor (GCB_SynthAudioProc
     addAndMakeVisible(border1);
     border1.setText("Waveshaper");
     
-
+    //slider per il filter
     addAndMakeVisible(dialFilter);
     dialFilter.setSliderStyle(juce::Slider::SliderStyle::Rotary);
     dialFilter.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 32, 16);
     dialFilter.setRange(0.3, 1.3, 0.1);
     dialFilter.setColour(juce::Slider::ColourIds::rotarySliderFillColourId, juce::Colours::white);
+    dialGain.onValueChange = [this]() {
+        double filterValue = dialFilter.getValue();
+        audioProcessor.audioSynth.SetLPFilterResonance(filterValue);
+        };
 
     addAndMakeVisible(border2);
     border2.setText("Filter");
-
-    for (int i = 0; i < maxVerticalSliders * 2; ++i) {
-        auto slider = std::make_unique<juce::Slider>();// Crea uno slider verticale e lo assegna a std::unique_ptr
-        slider->setSliderStyle(juce::Slider::SliderStyle::LinearVertical);
-        slider->setTextBoxStyle(juce::Slider::TextBoxBelow, false, 40, 20);
-        slider->setColour(juce::Slider::ColourIds::trackColourId, juce::Colours::whitesmoke);
-        slider->setRange(0, 1, 0.1);
-        addAndMakeVisible(*slider);
-
-        if (i < maxVerticalSliders) {
-            oscillatorSliders.push_back(std::move(slider)); // Aggiunge lo slider verticale al vettore per l'inviluppo dell'oscillatore
-        }
-        else {
-            releseOscillatorSliders.push_back(std::move(slider)); // Aggiunge lo slider verticale al vettore per l'inviluppo del filtro
-        }
-    }
-
-    addAndMakeVisible(oscillatorUp);
-    oscillatorUp.setText("Up");
-    oscillatorUp.setColour(juce::GroupComponent::ColourIds::outlineColourId,juce::Colours::grey);
 
     //slider per l'inviluppo del filter
     for (int i = 0; i < maxVerticalSliders * 2; ++i) {
         auto slider = std::make_unique<juce::Slider>();// Crea uno slider verticale e lo assegna a std::unique_ptr
         slider->setSliderStyle(juce::Slider::SliderStyle::LinearVertical);
-        slider->setTextBoxStyle(juce::Slider::TextBoxBelow, false, 40, 20);
+        slider->setTextBoxStyle(juce::Slider::TextBoxBelow, false, 30, 15);
         slider->setColour(juce::Slider::ColourIds::trackColourId, juce::Colours::whitesmoke);
         slider->setRange(0.5, 5, 0.1);
         addAndMakeVisible(*slider);
@@ -165,13 +187,35 @@ GCB_SynthAudioProcessorEditor::GCB_SynthAudioProcessorEditor (GCB_SynthAudioProc
         if (i<maxVerticalSliders)
         {
             filterSliders.push_back(std::move(slider));// Aggiunge lo slider verticale al vettore
+            auto* currentSlider = filterSliders.back().get(); 
+            currentSlider->onValueChange = [currentSlider, this]() {
+                float sliderValue = currentSlider->getValue();
+                audioProcessor.audioSynth.AddEnvelopeRamp(EnvType::lpFilterEnv , EnvState::attack, sliderValue);
+
+                };
         }
         else
         {
             releseFilterSliders.push_back(std::move(slider));// Aggiunge lo slider verticale al vettore
+            auto* currentSlider = releseFilterSliders.back().get();
+            currentSlider->onValueChange = [currentSlider, this]() {
+                float sliderValue = currentSlider->getValue();
+                audioProcessor.audioSynth.AddEnvelopeRamp(EnvType::lpFilterEnv, EnvState::release, sliderValue);
+
+                };
         }
 
     }
+
+    addAndMakeVisible(filterAdd);
+    filterAdd.setText("AddEnvelope");
+    filterAdd.setColour(juce::GroupComponent::ColourIds::outlineColourId, juce::Colours::indianred);
+    filterAdd.setTextLabelPosition(juce::Justification::centred);
+
+    addAndMakeVisible(filterRelese);
+    filterRelese.setText("ReleseEnvelope");
+    filterRelese.setColour(juce::GroupComponent::ColourIds::outlineColourId, juce::Colours::cyan);
+    filterRelese.setTextLabelPosition(juce::Justification::centred);
 
     //metodi per resizare la window
     //getConstrainer()->setFixedAspectRatio(2.0);
@@ -237,14 +281,18 @@ void GCB_SynthAudioProcessorEditor::resized()
         auto sliderFilter = filterSliders[i].get();
         auto sliderReleaseFilter = releseFilterSliders[i].get();
 
-        oscillatorUp.setBounds(border.getX() + 20, border.getY() + sliderHeight - 55, sliderWidth + 175, sliderHeight - 70);
-
         // Imposta la posizione dei slider per l'inviluppo dell'oscillatore
+        oscillatorAdd.setBounds(border.getX() + 20, border.getY() + sliderHeight - 55, sliderWidth + 175, sliderHeight - 75);
         sliderOsc->setBounds(border.getX() + i * sliderWidth, border.getY() + sliderHeight - 40, sliderWidth, sliderHeight - 100);
+
+        oscillatorRelese.setBounds(border.getX() + 20, border.getY() + sliderHeight + 70, sliderWidth + 175, sliderHeight - 80);
         sliderReleaseOsc->setBounds(border.getX() + i * sliderWidth, border.getY() + sliderHeight + 80, sliderWidth, sliderHeight - 100);
 
         // Imposta la posizione dei slider per l'inviluppo del filtro
+        filterAdd.setBounds(border2.getX() + 20, border2.getY() + sliderHeight - 55, sliderWidth + 175, sliderHeight - 75);
         sliderFilter->setBounds(border2.getX() + i * sliderWidth, border2.getY() + sliderHeight - 40, sliderWidth, sliderHeight - 100);
+
+        filterRelese.setBounds(border2.getX() + 20, border2.getY() + sliderHeight + 70, sliderWidth + 175, sliderHeight - 80);
         sliderReleaseFilter->setBounds(border2.getX() + i * sliderWidth, border2.getY() + sliderHeight + 80, sliderWidth, sliderHeight - 100);
     }
 
