@@ -8,7 +8,7 @@
   ==============================================================================
 */
 
-#define HP_FILTER_ORDER 3
+#define HP_FILTER_ORDER 5
 
 #pragma once
 #include <JuceHeader.h>
@@ -29,23 +29,26 @@ public:
         smooth.setTargetValue(res);
     }
 
-    void updateResonance() {
-        svFilter.setResonance(smooth.getNextValue());
-    }
+
 
     void setCutoffFrequency(double freq)
     {
         svFilter.setCutoffFrequency(freq);
+        svFilter.setResonance(smooth.getNextValue());
     }   
 
     Type processSample(int channel ,Type val) {
-        return svFilter.processSample(channel, val);
+        if (enabled)
+            return svFilter.processSample(channel, val);
+        else
+            return val;
     }
 
     template <typename ProcessContext>
     void process(const ProcessContext& context) noexcept
     {
-        svFilter.process(context);
+        if(enabled)
+            svFilter.process(context);
     }
 
     void reset() {
@@ -60,10 +63,13 @@ public:
         smooth.reset(spec.sampleRate / SAMPLE_SKIPS, DEFAULT_RAMP_DURATION);
     }
 
+    bool enabled = true;
+
 private:
     juce::LinearSmoothedValue<double> smooth{ 0.0f };
 
     juce::dsp::StateVariableTPTFilter<Type> svFilter;
+
 };
 
 
@@ -83,14 +89,23 @@ public:
         //auto coeffArray = juce::dsp::FilterDesign<Type>::designIIRLowpassHighOrderButterworthMethod(freq, sampleRate, 3);
     }
 
-    void SetCoefficents(float sampleRate, float freq) {
+    void SetCoefficents(float sampleRate, int freq) {
         
+        //auto coeffArray = HPFilterCoefficients::GetCoefficient(note);
         auto coeffArray = juce::dsp::FilterDesign<Type>::designIIRHighpassHighOrderButterworthMethod(freq, sampleRate, HP_FILTER_ORDER);
+        DBG(typeid(coeffArray).name());
 
         for (int i = 0; i < filterCount; i++)
             *hpFilter[i]->state = *coeffArray[i];
+
     }
 
+    void SetCoefficents(juce::ReferenceCountedArray<struct juce::dsp::IIR::Coefficients<float>> coeffArray) {
+
+        for (int i = 0; i < filterCount; i++)
+            *hpFilter[i]->state = *coeffArray[i];
+
+    }
 
     template <typename ProcessContext>
     void process(const ProcessContext& context) noexcept
@@ -114,4 +129,24 @@ private:
     typedef juce::dsp::ProcessorDuplicator<juce::dsp::IIR::Filter<Type>, juce::dsp::IIR::Coefficients<Type>> IIRStereoFilter;
     juce::OwnedArray<IIRStereoFilter> hpFilter;
     int filterCount;
+};
+
+struct HPFilterCoefficients {
+public:
+
+    HPFilterCoefficients(double sampleRate  = DEFAULT_SAMPLE_RATE) {
+
+        //coefficients.add(juce::dsp::FilterDesign<float>::designIIRHighpassHighOrderButterworthMethod(juce::MidiMessage::getMidiNoteInHertz(0) + 0.1f, sampleRate, HP_FILTER_ORDER));
+        for (int i = 0; i < NOTES; i++)
+        coefficients.add(juce::dsp::FilterDesign<float>::designIIRHighpassHighOrderButterworthMethod(juce::MidiMessage::getMidiNoteInHertz(i), sampleRate, HP_FILTER_ORDER));
+    }
+    
+    juce::ReferenceCountedArray<struct juce::dsp::IIR::Coefficients<float>> GetCoefficient(int index)
+    {
+        return coefficients[index];
+    }
+
+private:
+    
+    juce::Array<juce::ReferenceCountedArray<struct juce::dsp::IIR::Coefficients<float>>> coefficients;
 };

@@ -28,7 +28,6 @@ public:
 
 
     void SetFunction(FunctionType funcT) {
-
         auto& waveShaper = processorChain.get<shaperIndex>();
         switch (funcT)
         {
@@ -73,7 +72,8 @@ public:
     template <typename ProcessContext>
     void process(const ProcessContext& context) noexcept
     {
-        processorChain.process(context); 
+        if(enabled)
+            processorChain.process(context); 
     }
 
     void reset() noexcept
@@ -90,6 +90,8 @@ public:
         processorChain.get<biasIndex>().setBias(juce::jlimit(minBias, maxBias, val));
     }
 
+    bool enabled = true;
+
 private:
     enum 
     {
@@ -105,4 +107,6 @@ private:
 
     float maxGain = 5, minGain = 1 / 5;
     float maxBias = 1, minBias = -1;
+
+
 };

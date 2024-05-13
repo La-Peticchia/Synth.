@@ -12,6 +12,8 @@
 
 #define SUSTAIN_VALUE 0.5f
 #define SAMPLE_SKIPS 5
+#define NOTES 128
+
 #define DEFAULT_RAMP_DURATION 0.5
 #define DEFAULT_SAMPLE_RATE 44100.
 #define DEFAULT_RESONANCE 1/std::sqrt(2)

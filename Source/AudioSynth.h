@@ -28,6 +28,7 @@ struct Sound : public juce::SynthesiserSound
     bool appliesToChannel(int) override { return true; }
 };
 
+class AudioSynth;
 
 class Voice : public juce::SynthesiserVoice {
     
@@ -67,8 +68,9 @@ class Voice : public juce::SynthesiserVoice {
             }
 
             float noteInHertz = juce::MidiMessage::getMidiNoteInHertz(midiNoteNumber);
-            processorChain.get<oscIndex>().setFrequency(noteInHertz);
-            hpFilter.SetCoefficents(getSampleRate(), noteInHertz);
+            GetOscillator().setFrequency(noteInHertz);
+            //hpFilter.SetCoefficents(getSampleRate(), noteInHertz);
+            hpFilter.SetCoefficents(coeffRef->GetCoefficient(midiNoteNumber));
 
             gainEnvGen.Attack();
             cutOffEnvGen.Attack();
@@ -121,17 +123,21 @@ class Voice : public juce::SynthesiserVoice {
             {   
                 float nextValue = gainEnvGen.GetNextValue();
                 lpFilter.setCutoffFrequency(juce::jlimit(0., (sampleRate / 2) - 1, noteInHertz * (cutOffEnvGen.GetNextValue() + 1)));
-                lpFilter.updateResonance();
                 for (auto i = SAMPLE_SKIPS; --i >= 0 && sampleIndex < numSamples;) {
                     for (auto k = nChannels; --k >= 0;) 
                         blockPointers[k][sampleIndex] = lpFilter.processSample(k, blockPointers[k][sampleIndex] * nextValue)  ;
                     sampleIndex++;
                 }
             }
-#pragma endregion
+                
+                
 
             //HighPass Filter processing
+            
             hpFilter.process(context);
+
+#pragma endregion
+
 
             if (gainEnvGen.GetCurrentState() != idle) {
                 juce::dsp::AudioBlock<float>(outputBuffer)
@@ -157,9 +163,10 @@ class Voice : public juce::SynthesiserVoice {
             return processorChain.get<distortionIndex>();
         }
 
-        void SetAudioSynthRef(juce::Synthesiser* ref, int index) {
+        void SetAudioSynthRef(juce::Synthesiser* ref, int index, HPFilterCoefficients* cRef) {
             audioSynthRef = ref;
             voiceIndex = index;
+            coeffRef = cRef;
         }
 
         void AddEnvelopeRamp(EnvType type, EnvState state, float value) {
@@ -168,7 +175,7 @@ class Voice : public juce::SynthesiserVoice {
                 return;
             auto currentGen = (state == gainEnv) ? &gainEnvGen : &cutOffEnvGen;
             auto currentRamps = (type == attack) ? &currentGen->attacks : &currentGen->releases;
-            currentRamps->insert(currentRamps->size()-1, new Ramp(value, 0.1f));
+            currentRamps->insert(currentRamps->size()-1, new Ramp(value, DEFAULT_RAMP_DURATION));
         }
 
         void RemoveEnvelopeRamp(EnvType type, EnvState state) {
@@ -180,14 +187,23 @@ class Voice : public juce::SynthesiserVoice {
             currentRamps->remove(currentRamps->size() - 1, true);
         }
 
-        void ChangeEnvDuration(EnvType type, float value) {
+        void SetRampTargetValue(EnvType type, EnvState state, int index, float value) {
+            if (state != attack && state != release)
+                return;
             auto currentGen = (type == gainEnv) ? &gainEnvGen : &cutOffEnvGen;
-            currentGen->ChangeEnvDuration(value, getSampleRate());
+            auto currentRamps = (state == attack) ? &currentGen->attacks : &currentGen->releases;
+            (*currentRamps)[index]->targetValue = value;
+
         }
 
-        void SetLPFilterResonance(double q) {
-            lpFilter.setResonance(q);
+        void SetEnvDuration(EnvType type, float value) {
+            auto currentGen = (type == gainEnv) ? &gainEnvGen : &cutOffEnvGen;
+            currentGen->SetEnvDuration(value, getSampleRate());
         }
+
+
+
+        SVFilter<float> lpFilter;
 
     private:
     
@@ -199,9 +215,9 @@ class Voice : public juce::SynthesiserVoice {
         
         juce::Synthesiser* audioSynthRef;
         int voiceIndex;
+        HPFilterCoefficients* coeffRef;
 
         juce::dsp::ProcessorChain<CustomOscillator<float>, CustomDistortion<float>> processorChain;
-        SVFilter<float> lpFilter;
         HPFilter<float> hpFilter;
 
         juce::dsp::AudioBlock<float> tempBlock;
@@ -226,7 +242,7 @@ public:
         for (int i = 0; i < maxVoiceNumb; i++) {
 
             auto voice = new Voice();
-            voice->SetAudioSynthRef(this, i);
+            voice->SetAudioSynthRef(this, i, &hpCoeff);
             addVoice(voice);
         }
         addSound(new Sound);
@@ -236,16 +252,23 @@ public:
     void prepare(const juce::dsp::ProcessSpec& spec) noexcept
     {
         setCurrentPlaybackSampleRate(spec.sampleRate);
+        hpCoeff = HPFilterCoefficients(spec.sampleRate);
 
         for (auto* v : voices)
             dynamic_cast<Voice*> (v)->prepare(spec);
+
     }
+
+#pragma region Oscillator interface
 
     void SetOscillatorWave(WaveType wave) {
         for (int i = 0; i < getNumVoices(); i++)
             dynamic_cast<Voice*>(getVoice(i))->GetOscillator().SetWave(wave);
     }
 
+#pragma endregion
+
+#pragma region Waveshaper interface
     void SetDistortionFunction(FunctionType func) {
         for (int i = 0; i < getNumVoices(); i++)
             dynamic_cast<Voice*>(getVoice(i))->GetDistortion().SetFunction(func);
@@ -261,6 +284,28 @@ public:
             dynamic_cast<Voice*>(getVoice(i))->GetDistortion().SetGain(gain);
     }
 
+    void SetDistortionActive(bool state) {
+        for (int i = 0; i < getNumVoices(); i++)
+            dynamic_cast<Voice*>(getVoice(i))->GetDistortion().enabled = state;
+    }
+
+#pragma endregion
+
+#pragma region LPFilter interface
+    void SetLPFilterResonance(double q) {
+        for (int i = 0; i < getNumVoices(); i++)
+            dynamic_cast<Voice*>(getVoice(i))->lpFilter.setResonance(q);
+    }
+
+    void SetLPFilterActive(bool state) {
+        for (int i = 0; i < getNumVoices(); i++)
+            dynamic_cast<Voice*>(getVoice(i))->lpFilter.enabled = state;
+    }
+
+#pragma endregion
+
+
+#pragma region Envelope interface
     void AddEnvelopeRamp(EnvType type, EnvState state, float value) {
         for (int i = 0; i < getNumVoices(); i++)
             dynamic_cast<Voice*>(getVoice(i))->AddEnvelopeRamp(type, state, value);
@@ -271,18 +316,26 @@ public:
             dynamic_cast<Voice*>(getVoice(i))->RemoveEnvelopeRamp(type, state);
     }
 
-    void ChangeEnvelopeDuration(EnvType type, float value) {
+    void SetRampTargetValue(EnvType type, EnvState state, int index, float value) {
         for (int i = 0; i < getNumVoices(); i++)
-            dynamic_cast<Voice*>(getVoice(i))->ChangeEnvDuration(type, value);
+            dynamic_cast<Voice*>(getVoice(i))->SetRampTargetValue(EnvType type, EnvState state, int index, float value);
     }
 
-    void SetLPFilterResonance(double q) {
+    void SetEnvelopeDuration(EnvType type, float value) {
         for (int i = 0; i < getNumVoices(); i++)
-            dynamic_cast<Voice*>(getVoice(i))->SetLPFilterResonance(q);
+            dynamic_cast<Voice*>(getVoice(i))->SetEnvDuration(type, value);
     }
+
+#pragma endregion
+
+
+
+
+    HPFilterCoefficients hpCoeff;
 
 private:
     
+
 };
 
 

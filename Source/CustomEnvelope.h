@@ -129,7 +129,7 @@ public:
         
     }
 
-    void ChangeEnvDuration(float totalEnvDuration, double sampleRate) {
+    void SetEnvDuration(float totalEnvDuration, double sampleRate) {
         envValue.reset(sampleRate, totalEnvDuration/attacks.size());
     }
 
@@ -150,6 +150,5 @@ private:
     juce::OwnedArray<Ramp> currentRamps;
 
     int rampCount = 0;
-
 
 };
