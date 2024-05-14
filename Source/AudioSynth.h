@@ -318,7 +318,7 @@ public:
 
     void SetRampTargetValue(EnvType type, EnvState state, int index, float value) {
         for (int i = 0; i < getNumVoices(); i++)
-            dynamic_cast<Voice*>(getVoice(i))->SetRampTargetValue(EnvType type, EnvState state, int index, float value);
+            dynamic_cast<Voice*>(getVoice(i))->SetRampTargetValue(type, state, index, value);
     }
 
     void SetEnvelopeDuration(EnvType type, float value) {

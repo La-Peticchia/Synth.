@@ -53,7 +53,7 @@ GCB_SynthAudioProcessorEditor::GCB_SynthAudioProcessorEditor (GCB_SynthAudioProc
     releseTimeSlider.onValueChange = [this]()
         {
             float durationValue = releseTimeSlider.getValue();
-            audioProcessor.audioSynth.ChangeEnvelopeDuration(EnvType::gainEnv, durationValue);
+            audioProcessor.audioSynth.SetEnvelopeDuration(EnvType::gainEnv, durationValue);
         };
 
 
