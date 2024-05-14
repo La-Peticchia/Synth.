@@ -37,6 +37,7 @@ private:
     juce::GroupComponent border, border1, border2, oscillatorAdd, oscillatorRelese, filterAdd, filterRelese;
     std::vector<std::unique_ptr<juce::Slider>> oscillatorSliders, filterSliders, releseOscillatorSliders, releseFilterSliders;
     int maxVerticalSliders = 3;
+    juce::ToggleButton distortionToggle, filterToggle;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (GCB_SynthAudioProcessorEditor)
 };
