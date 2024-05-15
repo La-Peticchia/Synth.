@@ -198,7 +198,7 @@ class Voice : public juce::SynthesiserVoice {
 
         void SetEnvDuration(EnvType type, float value) {
             auto currentGen = (type == gainEnv) ? &gainEnvGen : &cutOffEnvGen;
-            currentGen->SetEnvDuration(value, getSampleRate());
+            currentGen->SetEnvDuration(value, getSampleRate()/SAMPLE_SKIPS);
         }
 
 

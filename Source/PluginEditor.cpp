@@ -47,7 +47,7 @@ GCB_SynthAudioProcessorEditor::GCB_SynthAudioProcessorEditor (GCB_SynthAudioProc
 
     addAndMakeVisible(releseTimeSlider);
     releseTimeSlider.setSliderStyle(juce::Slider::SliderStyle::LinearHorizontal);
-    releseTimeSlider.setRange(0, 10, 1);
+    releseTimeSlider.setRange(0.5f, 2);
     releseTimeSlider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 32, 16);
     releseTimeSlider.setColour(juce::Slider::ColourIds::trackColourId, juce::Colours::white);
     releseTimeSlider.onValueChange = [this]()

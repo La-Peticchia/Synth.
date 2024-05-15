@@ -121,7 +121,7 @@ public:
 
     void ResetToZero(double sampleRate) {
         envValue.setCurrentAndTargetValue(0.f);
-        envValue.reset(sampleRate, DEFAULT_RAMP_DURATION);
+        envValue.reset(sampleRate, rampDuration);
     }
 
     float GetCurrentValue() {
@@ -130,7 +130,8 @@ public:
     }
 
     void SetEnvDuration(float totalEnvDuration, double sampleRate) {
-        envValue.reset(sampleRate, totalEnvDuration/attacks.size());
+        rampDuration = totalEnvDuration / attacks.size();
+        envValue.reset(sampleRate, rampDuration);
     }
 
     EnvState GetCurrentState() {
@@ -150,5 +151,5 @@ private:
     juce::OwnedArray<Ramp> currentRamps;
 
     int rampCount = 0;
-
+    float rampDuration = DEFAULT_RAMP_DURATION;
 };
