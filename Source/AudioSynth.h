@@ -36,12 +36,12 @@ class Voice : public juce::SynthesiserVoice {
 
         Voice() {
             //gainEnvGen.attacks.add(new Ramp(0.7f, 1.f));
-            gainEnvGen.attacks.add(new Ramp(SUSTAIN_VALUE, DEFAULT_RAMP_DURATION));
+            //gainEnvGen.attacks.add(new Ramp(SUSTAIN_VALUE, DEFAULT_RAMP_DURATION));
             //gainEnvGen.releases.add(new Ramp(0.3f, 1.f));
             gainEnvGen.releases.add(new Ramp(0.f, DEFAULT_RAMP_DURATION));
 
-            cutOffEnvGen.attacks.add(new Ramp(SUSTAIN_VALUE, DEFAULT_RAMP_DURATION));
-            cutOffEnvGen.releases.add(new Ramp(0.f, DEFAULT_RAMP_DURATION));
+            //cutOffEnvGen.attacks.add(new Ramp(SUSTAIN_VALUE, DEFAULT_RAMP_DURATION));
+            //cutOffEnvGen.releases.add(new Ramp(0.f, DEFAULT_RAMP_DURATION));
 
             //cutOffEnvGen.attacks.add(new Ramp(3.f, 0.1f ));
             //cutOffEnvGen.attacks.add(new Ramp(0.3, 0.1f));
@@ -111,7 +111,7 @@ class Voice : public juce::SynthesiserVoice {
 #pragma region Envelope and LowPass Filter Processing
 
 
-            int sampleIndex = 0, nSamp = numSamples/SAMPLE_SKIPS + 1, nChannels = outputBuffer.getNumChannels();
+            int sampleIndex = 0, nSamp = (numSamples/SAMPLE_SKIPS) + 1, nChannels = outputBuffer.getNumChannels();
             double noteInHertz = juce::MidiMessage::getMidiNoteInHertz(getCurrentlyPlayingNote()), sampleRate = getSampleRate();
 
             juce::Array<float*> blockPointers;
@@ -175,7 +175,9 @@ class Voice : public juce::SynthesiserVoice {
                 return;
             auto currentGen = (state == gainEnv) ? &gainEnvGen : &cutOffEnvGen;
             auto currentRamps = (type == attack) ? &currentGen->attacks : &currentGen->releases;
-            currentRamps->insert(currentRamps->size()-1, new Ramp(value, DEFAULT_RAMP_DURATION));
+            //currentRamps->insert(currentRamps->size()-1, new Ramp(value, DEFAULT_RAMP_DURATION));
+
+            currentRamps->add(new Ramp(value, DEFAULT_RAMP_DURATION));
         }
 
         void RemoveEnvelopeRamp(EnvType type, EnvState state) {
@@ -247,6 +249,7 @@ public:
         }
         addSound(new Sound);
         setNoteStealingEnabled(true);
+
     }
 
     void prepare(const juce::dsp::ProcessSpec& spec) noexcept
@@ -327,9 +330,6 @@ public:
     }
 
 #pragma endregion
-
-
-
 
     HPFilterCoefficients hpCoeff;
 

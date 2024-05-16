@@ -36,7 +36,7 @@ GCB_SynthAudioProcessorEditor::GCB_SynthAudioProcessorEditor (GCB_SynthAudioProc
             }
             else if (dialValue >= 1.0 && dialValue < 2.0)
             {
-                audioProcessor.audioSynth.SetOscillatorWave(WaveType::sawThooth);
+                audioProcessor.audioSynth.SetOscillatorWave(WaveType::expWave);
             }
             else if (dialValue >= 2.0 && dialValue <= 3.0)
             {

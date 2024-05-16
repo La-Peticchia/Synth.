@@ -21,7 +21,9 @@ enum WaveType { //oscillator
     sine,
     sawThooth,
     squareWave,
-    triangular
+    triangular,
+    logWave,
+    expWave
 };
 
 enum FunctionType { //waveshaper
