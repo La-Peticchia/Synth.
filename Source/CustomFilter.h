@@ -63,7 +63,7 @@ public:
         smooth.reset(spec.sampleRate / SAMPLE_SKIPS, DEFAULT_RAMP_DURATION);
     }
 
-    bool enabled = true;
+    bool enabled = false;
 
 private:
     juce::LinearSmoothedValue<double> smooth{ 0.0f };
@@ -156,9 +156,9 @@ class FDNReverb {
 public:
 
     FDNReverb() {
-        delayLines[0].setDelay(50);
-        delayLines[1].setDelay(175);
-        delayLines[2].setDelay(380);
+        delayLines.add(new juce::dsp::DelayLine<float>(50));
+        delayLines.add(new juce::dsp::DelayLine<float>(175));
+        delayLines.add(new juce::dsp::DelayLine<float>(380));
 
         for (int i = 0; i < 3; i++)
         {
@@ -166,9 +166,10 @@ public:
             b[i] = 1.f;
             g[i][i] = 0.7f;
         }
-
-
+        
+        
         std::vector<std::vector<int>> hadam = hadamard_matrix(3);
+        
         for (int i = 0; i < 3; i++)
             DBG(hadam[i][0] << " " << hadam[i][1] << " " << hadam[i][2]);
     }
@@ -178,7 +179,7 @@ public:
         std::vector<float> z = std::vector<float>(3, 0.f);
 
         for (int i = 0; i < 3; i++)
-            z[i] = delayLines[i].popSample(0);
+            z[i] = delayLines[i]->popSample(0);
 
         std::vector<float> out = matrix_vector_mult(g, matrix_vector_mult(A, z));
 
@@ -186,7 +187,7 @@ public:
 
         for (int i = 0; i < 3; i++)
         {
-            delayLines[i].pushSample(0, out[i] + b[i] * sample);
+            delayLines[i]->pushSample(0, out[i] + b[i] * sample);
             y += c[i] * z[i];
         }
 
@@ -196,8 +197,10 @@ public:
 
 private:
     std::vector<float> b = std::vector<float>(3, 0.f), c = std::vector<float>(3, 0.f);
-    std::vector<std::vector<float>> A = std::vector<std::vector<float>>(3, std::vector<float>(3, 0.f)), g = = std::vector<std::vector<float>>(3, std::vector<float>(3, 0.f));
-    juce::Array<juce::dsp::DelayLine<float>> delayLines = juce::Array<juce::dsp::DelayLine<float>>(juce::dsp::DelayLine<float>(), 3);
+    std::vector<std::vector<float>> A = std::vector<std::vector<float>>(3.f, std::vector<float>(3.f, 0.f));
+    std::vector<std::vector<float>> g = std::vector<std::vector<float>>(3, std::vector<float>(3, 0.f));
+    juce::OwnedArray<juce::dsp::DelayLine<float>> delayLines;
+    //juce::Array<juce::dsp::DelayLine<float>> delayLines = juce::Array<juce::dsp::DelayLine<float>>(juce::dsp::DelayLine<float>(), 3);
     float d;
 
     //float b[3], c[3], A[3][3], delayLines[3][100];
@@ -233,7 +236,9 @@ private:
     }
 
     std::vector<std::vector<int>> hadamard_matrix(int n) {
-        std::vector<std::vector<int>> H = { {1} };
+        std::vector<std::vector<int>> H(2, std::vector<int>(2));
+        H[0][0] = 1; H[0][1] = 1; H[1][0] = 1; H[1][1] = -1;
+
         for (int i = 0; i < n; i++) {
             H = kronecker_product(H, H);
         }

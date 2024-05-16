@@ -60,7 +60,32 @@ public:
                 return jlimit(Type(-1), Type(1), sin(x) * Type(50));
                 }, 128);
             break;
+        case logWave:
+            osc.initialise([](Type x) {
+                auto val = juce::jmap(x,
+                Type(-juce::MathConstants<double>::pi),
+                Type(juce::MathConstants<double>::pi),
+                Type(-1),
+                Type(1));
 
+                return std::log(x);
+
+                }, 128);
+            break;
+
+        case expWave:
+            osc.initialise([](Type x) {
+                auto val = juce::jmap(x,
+                Type(-juce::MathConstants<double>::pi),
+                Type(juce::MathConstants<double>::pi),
+                Type(-1),
+                Type(1));
+
+            return val * val;
+
+                }, 128);
+
+            break;
         }
     }
 

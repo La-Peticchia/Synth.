@@ -90,7 +90,7 @@ public:
         processorChain.get<biasIndex>().setBias(juce::jlimit(minBias, maxBias, val));
     }
 
-    bool enabled = true;
+    bool enabled = false;
 
 private:
     enum 

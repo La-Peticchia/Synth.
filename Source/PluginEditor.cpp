@@ -47,7 +47,6 @@ GCB_SynthAudioProcessorEditor::GCB_SynthAudioProcessorEditor(GCB_SynthAudioProce
             else if (dialValue >= 1.0 && dialValue < 2.0)
             {
                 audioProcessor.audioSynth.SetOscillatorWave(WaveType::sawThooth);
-                waveTypeLabel.setText("Sawtooth Wave", juce::dontSendNotification);
             }
             else if (dialValue >= 2.0 && dialValue <= 3.0)
             {
