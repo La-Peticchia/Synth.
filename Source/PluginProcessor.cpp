@@ -148,9 +148,22 @@ void GCB_SynthAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, ju
 
     audioSynth.renderNextBlock(buffer, midiMessages, 0, buffer.getNumSamples());
 
+    delay.processBlock(buffer);
+
     int numSamples = buffer.getNumSamples();
     int startSample = 0;
-
+    
+    //float rms = 0.f;
+    //for (int i = 0; i < buffer.getNumChannels(); i++)
+    //    rms += buffer.getRMSLevel(i, startSample, numSamples);
+    //rms /= buffer.getNumChannels();
+    //float treshold = -9.f;
+    ////DBG(juce::Decibels::gainToDecibels(rms));
+    //
+    //if(juce::Decibels::gainToDecibels(rms) > treshold)
+    //{
+    //    DBG(juce::Decibels::decibelsToGain(-(juce::Decibels::gainToDecibels(rms) - treshold)));
+    //}
     //while (numSamples--)
     //{
     //    DBG(buffer.getSample(0, startSample++));

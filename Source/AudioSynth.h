@@ -36,12 +36,12 @@ class Voice : public juce::SynthesiserVoice {
 
         Voice() {
             //gainEnvGen.attacks.add(new Ramp(0.7f, 1.f));
-            //gainEnvGen.attacks.add(new Ramp(SUSTAIN_VALUE, DEFAULT_RAMP_DURATION));
+            gainEnvGen.attacks.add(new Ramp(SUSTAIN_VALUE, DEFAULT_RAMP_DURATION));
             //gainEnvGen.releases.add(new Ramp(0.3f, 1.f));
             gainEnvGen.releases.add(new Ramp(0.f, DEFAULT_RAMP_DURATION));
 
-            //cutOffEnvGen.attacks.add(new Ramp(SUSTAIN_VALUE, DEFAULT_RAMP_DURATION));
-            //cutOffEnvGen.releases.add(new Ramp(0.f, DEFAULT_RAMP_DURATION));
+            cutOffEnvGen.attacks.add(new Ramp(SUSTAIN_VALUE, DEFAULT_RAMP_DURATION));
+            cutOffEnvGen.releases.add(new Ramp(0.f, DEFAULT_RAMP_DURATION));
 
             //cutOffEnvGen.attacks.add(new Ramp(3.f, 0.1f ));
             //cutOffEnvGen.attacks.add(new Ramp(0.3, 0.1f));
@@ -129,11 +129,12 @@ class Voice : public juce::SynthesiserVoice {
                     sampleIndex++;
                 }
             }
-                
+            
+            
                 
 
             //HighPass Filter processing
-            
+            if(lpFilter.enabled)
             hpFilter.process(context);
 
 #pragma endregion
@@ -175,9 +176,9 @@ class Voice : public juce::SynthesiserVoice {
                 return;
             auto currentGen = (state == gainEnv) ? &gainEnvGen : &cutOffEnvGen;
             auto currentRamps = (type == attack) ? &currentGen->attacks : &currentGen->releases;
-            //currentRamps->insert(currentRamps->size()-1, new Ramp(value, DEFAULT_RAMP_DURATION));
+            currentRamps->insert(currentRamps->size()-1, new Ramp(value, DEFAULT_RAMP_DURATION));
 
-            currentRamps->add(new Ramp(value, DEFAULT_RAMP_DURATION));
+            //currentRamps->add(new Ramp(value, DEFAULT_RAMP_DURATION));
         }
 
         void RemoveEnvelopeRamp(EnvType type, EnvState state) {

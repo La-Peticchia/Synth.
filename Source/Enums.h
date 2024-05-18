@@ -22,7 +22,6 @@ enum WaveType { //oscillator
     sawThooth,
     squareWave,
     triangular,
-    logWave,
     expWave
 };
 
@@ -30,6 +29,7 @@ enum FunctionType { //waveshaper
     softClip,
     hardClip,
     waveFold,
+    absolute,
     none
 };
 

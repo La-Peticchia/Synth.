@@ -7,9 +7,9 @@
 */
 
 #pragma once
-
 #include <JuceHeader.h>
 #include "AudioSynth.h"
+#include "CustomDelay.h"
 
 //==============================================================================
 /**
@@ -58,8 +58,10 @@ public:
     juce::MidiKeyboardState keyboardState;
     AudioSynth audioSynth;
 private:
-
     juce::MidiMessageCollector midiMessageCollector;
+
+    CustomDelay delay = CustomDelay(DEFAULT_SAMPLE_RATE, 0.5f, 0.8f);
+
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (GCB_SynthAudioProcessor)
 };

@@ -51,25 +51,13 @@ public:
                 Type(-1),
                 Type(1));
 
-                return Type(2) * std::fabs(fmod(val, Type(2)) - Type(1)) - Type(1);
+                return Type(2) * std::fabs(val) - Type(1);
 
                 }, 128);
             break;
         case squareWave:
             osc.initialise([](Type x) {
                 return jlimit(Type(-1), Type(1), sin(x) * Type(50));
-                }, 128);
-            break;
-        case logWave:
-            osc.initialise([](Type x) {
-                auto val = juce::jmap(x,
-                Type(-juce::MathConstants<double>::pi),
-                Type(juce::MathConstants<double>::pi),
-                Type(-1),
-                Type(1));
-
-                return std::log(x);
-
                 }, 128);
             break;
 
@@ -81,7 +69,7 @@ public:
                 Type(-1),
                 Type(1));
 
-            return val * val;
+            return val * val * Type(2) - Type(1);
 
                 }, 128);
 

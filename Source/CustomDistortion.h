@@ -52,6 +52,12 @@ public:
                     return Type(2) * std::fabs(fmod(x,Type(2)) - Type(1)) - Type(1);
                 };
                 break;
+        case absolute: 
+            waveShaper.functionToUse = [](Type x)
+                {
+                    return std::fabs(x);
+                };
+            break;
         default:
             waveShaper.functionToUse = [](Type x)
                 {
