@@ -1,23 +1,23 @@
 /*
   ==============================================================================
 
-    CustomDelay.h
-    Created: 16 May 2024 2:20:54pm
+    CustomFlanger.h
+    Created: 18 May 2024 11:36:57am
     Author:  Slend
 
   ==============================================================================
 */
 
 #pragma once
+
 #include <JuceHeader.h>
 #include "Defines.h"
 
-class CustomDelay {
+class CustomFlanger {
 public:
-
-    CustomDelay(float sampleRate = DEFAULT_SAMPLE_RATE, float timeInterval = DEFAULT_DELAY, float gain = DEFAULT_GAIN) {
-
+    CustomFlanger(float sampleRate = DEFAULT_SAMPLE_RATE, float oscFrequency = DEFAULT_LFO_FREQUENCY, float timeInterval = DEFAULT_DELAY, float gain = DEFAULT_GAIN) {
         lineLenght = (int)(timeInterval * sampleRate);
+        deltaAngle = 2 * juce::MathConstants<float>::pi * oscFrequency / sampleRate;
         delayLine = std::vector<float>(lineLenght, 0.f);
         this->gain = gain;
 
@@ -36,37 +36,51 @@ public:
                 pointers[i][startSample] = processSample(pointers[i][startSample]);
             startSample++;
         }
-        
+
     }
 
     float processSample(float sample) {
 
-        float pop = delayLine.back();
+        int index = (int)Map(std::sin(currentAngle));
+        float out = sample + delayLine[index] * gain;
+        UpdateAngle();
         delayLine.pop_back();
+        delayLine.insert(delayLine.begin(), sample);
 
-        float out = sample + pop;
-        delayLine.insert(delayLine.begin(), sample + pop * gain);
-        
         return out;
     }
 
-    void SetGain(float value ) {
-        gain = juce::jlimit(0.1f, 0.9f, value);
+    void SetGain(float value) {
+        gain = value;
     }
 
-    void SetDelay(float value ) {
+    void SetDelay(float value) {
         lineLenght = (int)(value * sampleRate);
         delayLine = std::vector<float>(lineLenght, 0.f);
     }
 
-    void SetSampleRate(float value ) {
+    void SetFrequency(float value ) {
+        deltaAngle = 2 * juce::MathConstants<float>::pi * value / sampleRate;
+    }
+
+    void SetSampleRate(float value) {
         sampleRate = value;
     }
 
+
 private:
+    
 
     std::vector<float> delayLine;
     int lineLenght = 0;
-    float sampleRate = DEFAULT_SAMPLE_RATE;
-    float gain = DEFAULT_GAIN;
+    float deltaAngle, currentAngle, gain = DEFAULT_GAIN, sampleRate = DEFAULT_SAMPLE_RATE;
+
+    void UpdateAngle() {
+        currentAngle = std::fmod(currentAngle + deltaAngle, 2 * juce::MathConstants<float>::pi);
+    }
+
+    float Map(float val) {
+        float m = (lineLenght - 1) / 2;
+        return val * m + m;
+    }
 };

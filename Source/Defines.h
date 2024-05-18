@@ -19,3 +19,4 @@
 #define DEFAULT_RESONANCE 1/std::sqrt(2)
 #define DEFAULT_DELAY 1.f
 #define DEFAULT_GAIN  0.7f
+#define DEFAULT_LFO_FREQUENCY 2

@@ -10,7 +10,7 @@
 #include <JuceHeader.h>
 #include "AudioSynth.h"
 #include "CustomDelay.h"
-
+#include "CustomFlanger.h"
 //==============================================================================
 /**
 */
@@ -57,10 +57,10 @@ public:
 
     juce::MidiKeyboardState keyboardState;
     AudioSynth audioSynth;
+    CustomDelay delay = CustomDelay(DEFAULT_SAMPLE_RATE, 0.5f, 0.8f);
+    CustomFlanger flanger = CustomFlanger(DEFAULT_SAMPLE_RATE, 2.f, 0.13f, 0.3f);
 private:
     juce::MidiMessageCollector midiMessageCollector;
-
-    CustomDelay delay = CustomDelay(DEFAULT_SAMPLE_RATE, 0.5f, 0.8f);
 
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (GCB_SynthAudioProcessor)
