@@ -16,14 +16,14 @@ using namespace juce;
 /**
 */
 
-class GCB_SynthAudioProcessorEditor  : public juce::AudioProcessorEditor
+class GCB_SynthAudioProcessorEditor : public juce::AudioProcessorEditor
 {
 public:
-    GCB_SynthAudioProcessorEditor (GCB_SynthAudioProcessor&);
+    GCB_SynthAudioProcessorEditor(GCB_SynthAudioProcessor&);
     ~GCB_SynthAudioProcessorEditor() override;
 
     //==============================================================================
-    void paint (juce::Graphics&) override;
+    void paint(juce::Graphics&) override;
     void resized() override;
 
 private:
@@ -33,13 +33,12 @@ private:
     juce::MidiKeyboardComponent keyboardComp;
 
     juce::Slider dialOscillator, dialDistortion, dialFilter, dialBias, dialGain, releseTimeSlider;
-    juce::Label label1, label2, label3, label4;
-    juce::GroupComponent border, border1, border2, oscillatorAdd, oscillatorRelese, filterAdd, filterRelese;
+    juce::Label label1, label2, label3, label4, waveTypeLabel, functionTypeLabel;
+    juce::GroupComponent border, border1, border2, oscillatorAttackBorder, oscillatorReleseBorder, filterAttackBorder, filterReleseBorder;
     std::vector<std::unique_ptr<juce::Slider>> oscillatorSliders, filterSliders, releseOscillatorSliders, releseFilterSliders;
-    int maxVerticalSliders = 3;
+    int maxVerticalSliders = 2;
     juce::ToggleButton distortionToggle, filterToggle;
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (GCB_SynthAudioProcessorEditor)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(GCB_SynthAudioProcessorEditor)
 };
-
 

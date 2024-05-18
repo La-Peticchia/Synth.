@@ -1,3 +1,4 @@
+
 /*
   ==============================================================================
 
@@ -11,14 +12,14 @@
 #include "Enums.h"
 
 //==============================================================================
-GCB_SynthAudioProcessorEditor::GCB_SynthAudioProcessorEditor (GCB_SynthAudioProcessor& p)
-    : AudioProcessorEditor (&p), audioProcessor (p), keyboardComp(p.keyboardState, juce::KeyboardComponentBase::horizontalKeyboard)
+GCB_SynthAudioProcessorEditor::GCB_SynthAudioProcessorEditor(GCB_SynthAudioProcessor& p)
+    : AudioProcessorEditor(&p), audioProcessor(p), keyboardComp(p.keyboardState, juce::KeyboardComponentBase::horizontalKeyboard)
 {
     // Make sure that before the constructor has finished, you've set the
     // editor's size to whatever you need it to be.
     addAndMakeVisible(keyboardComp);
     keyboardComp.setMidiChannel(2);
-    
+
 
     //slider per l'oscillator
     addAndMakeVisible(dialOscillator);
@@ -26,6 +27,14 @@ GCB_SynthAudioProcessorEditor::GCB_SynthAudioProcessorEditor (GCB_SynthAudioProc
     dialOscillator.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 32, 16);
     dialOscillator.setRange(0, 3, 1.5);
     dialOscillator.setColour(juce::Slider::ColourIds::rotarySliderFillColourId, juce::Colours::white);
+    dialOscillator.setColour(juce::Slider::ColourIds::textBoxOutlineColourId, juce::Colours::transparentWhite);
+    dialOscillator.setColour(juce::Slider::ColourIds::textBoxTextColourId, juce::Colours::transparentWhite);
+
+    addAndMakeVisible(waveTypeLabel);
+    waveTypeLabel.setJustificationType(juce::Justification::centred);
+    waveTypeLabel.setFont(juce::Font(12.0f, juce::Font::italic));
+    waveTypeLabel.setText("Sine Wave", juce::dontSendNotification);
+
     dialOscillator.onValueChange = [this]()
         {
             float dialValue = dialOscillator.getValue();
@@ -33,21 +42,21 @@ GCB_SynthAudioProcessorEditor::GCB_SynthAudioProcessorEditor (GCB_SynthAudioProc
             if (dialValue < 1.0)
             {
                 audioProcessor.audioSynth.SetOscillatorWave(WaveType::sine);
+                waveTypeLabel.setText("Sine Wave", juce::dontSendNotification);
             }
             else if (dialValue >= 1.0 && dialValue < 2.0)
             {
-                audioProcessor.audioSynth.SetOscillatorWave(WaveType::expWave);
+                audioProcessor.audioSynth.SetOscillatorWave(WaveType::sawThooth);
             }
             else if (dialValue >= 2.0 && dialValue <= 3.0)
             {
                 audioProcessor.audioSynth.SetOscillatorWave(WaveType::squareWave);
+                waveTypeLabel.setText("Square Wave", juce::dontSendNotification);
             }
-
         };
 
     addAndMakeVisible(releseTimeSlider);
     releseTimeSlider.setSliderStyle(juce::Slider::SliderStyle::LinearHorizontal);
-
     releseTimeSlider.setRange(0, 3, 1);
     releseTimeSlider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 32, 16);
     releseTimeSlider.setColour(juce::Slider::ColourIds::trackColourId, juce::Colours::white);
@@ -69,15 +78,17 @@ GCB_SynthAudioProcessorEditor::GCB_SynthAudioProcessorEditor (GCB_SynthAudioProc
     for (int i = 0; i < maxVerticalSliders * 2; ++i) {
         auto slider = std::make_unique<juce::Slider>();// Crea uno slider verticale e lo assegna a std::unique_ptr
         slider->setSliderStyle(juce::Slider::SliderStyle::LinearVertical);
-        slider->setTextBoxStyle(juce::Slider::TextBoxBelow, false, 30, 15);
+        slider->setTextBoxStyle(juce::Slider::TextBoxBelow, false, 40, 15);
         slider->setColour(juce::Slider::ColourIds::trackColourId, juce::Colours::whitesmoke);
+        slider->setColour(juce::Slider::ColourIds::textBoxOutlineColourId, juce::Colours::transparentWhite);
         slider->setRange(0, 1, 0.1);
+        slider->setTextValueSuffix(" ms");
         addAndMakeVisible(*slider);
 
         if (i < maxVerticalSliders) {
             oscillatorSliders.push_back(std::move(slider)); // Aggiunge lo slider verticale al vettore per l'inviluppo dell'oscillatore
             auto* currentSlider = oscillatorSliders.back().get(); // Ottengo un puntatore grezzo allo slider corrente
-            currentSlider->onValueChange = [currentSlider, this,i]() {
+            currentSlider->onValueChange = [currentSlider, this, i]() {
                 float sliderValue = currentSlider->getValue();
                 audioProcessor.audioSynth.SetRampTargetValue(EnvType::gainEnv, EnvState::attack, i, sliderValue);
                 };
@@ -86,7 +97,7 @@ GCB_SynthAudioProcessorEditor::GCB_SynthAudioProcessorEditor (GCB_SynthAudioProc
         else {
             releseOscillatorSliders.push_back(std::move(slider)); // Aggiunge lo slider verticale al vettore per l'inviluppo del filtro
             auto* currentSlider = releseOscillatorSliders.back().get();
-            currentSlider->onValueChange = [currentSlider, this,i]() {
+            currentSlider->onValueChange = [currentSlider, this, i]() {
                 float sliderValue = currentSlider->getValue();
                 int releaseIndex = i - maxVerticalSliders;
                 audioProcessor.audioSynth.SetRampTargetValue(EnvType::gainEnv, EnvState::release, releaseIndex, sliderValue);
@@ -95,22 +106,30 @@ GCB_SynthAudioProcessorEditor::GCB_SynthAudioProcessorEditor (GCB_SynthAudioProc
         }
     }
 
-    addAndMakeVisible(oscillatorAdd);
-    oscillatorAdd.setText("AttackEnvelope");
-    oscillatorAdd.setColour(juce::GroupComponent::ColourIds::outlineColourId, juce::Colours::indianred);
-    oscillatorAdd.setTextLabelPosition(juce::Justification::centred);
+    addAndMakeVisible(oscillatorAttackBorder);
+    oscillatorAttackBorder.setText("AttackEnvelope");
+    oscillatorAttackBorder.setColour(juce::GroupComponent::ColourIds::outlineColourId, juce::Colours::indianred);
+    oscillatorAttackBorder.setTextLabelPosition(juce::Justification::centred);
 
-    addAndMakeVisible(oscillatorRelese);
-    oscillatorRelese.setText("ReleseEnvelope");
-    oscillatorRelese.setColour(juce::GroupComponent::ColourIds::outlineColourId, juce::Colours::cyan);
-    oscillatorRelese.setTextLabelPosition(juce::Justification::centred);
-    
+    addAndMakeVisible(oscillatorReleseBorder);
+    oscillatorReleseBorder.setText("ReleseEnvelope");
+    oscillatorReleseBorder.setColour(juce::GroupComponent::ColourIds::outlineColourId, juce::Colours::cyan);
+    oscillatorReleseBorder.setTextLabelPosition(juce::Justification::centred);
+
     //slider per la distorzione
     addAndMakeVisible(dialDistortion);
     dialDistortion.setSliderStyle(juce::Slider::SliderStyle::Rotary);
     dialDistortion.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 32, 16);
-    dialDistortion.setRange(0, 4, 1);
+    dialDistortion.setRange(0, 3, 1);
     dialDistortion.setColour(juce::Slider::ColourIds::rotarySliderFillColourId, juce::Colours::white);
+    dialDistortion.setColour(juce::Slider::ColourIds::textBoxOutlineColourId, juce::Colours::transparentWhite);
+    dialDistortion.setColour(juce::Slider::ColourIds::textBoxTextColourId, juce::Colours::transparentWhite);
+
+    addAndMakeVisible(functionTypeLabel);
+    functionTypeLabel.setJustificationType(juce::Justification::centred);
+    functionTypeLabel.setFont(juce::Font(12.0f, juce::Font::italic));
+    functionTypeLabel.setText("None", juce::dontSendNotification);
+
     dialDistortion.onValueChange = [this]()
         {
             float dialValue = dialDistortion.getValue();
@@ -118,25 +137,29 @@ GCB_SynthAudioProcessorEditor::GCB_SynthAudioProcessorEditor (GCB_SynthAudioProc
             if (dialValue == 0)
             {
                 audioProcessor.audioSynth.SetDistortionFunction(FunctionType::none);
+                functionTypeLabel.setText("None", juce::dontSendNotification);
             }
-            else if (dialValue == 1.0f )
+            else if (dialValue == 1.0)
             {
                 audioProcessor.audioSynth.SetDistortionFunction(FunctionType::softClip);
+                functionTypeLabel.setText("Soft Clip", juce::dontSendNotification);
             }
-            else if (dialValue == 2.0f )
+            else if (dialValue == 2.0)
             {
                 audioProcessor.audioSynth.SetDistortionFunction(FunctionType::hardClip);
+                functionTypeLabel.setText("Hard Clip", juce::dontSendNotification);
             }
-            else if (dialValue == 3.f)
+            else if (dialValue == 3)
             {
                 audioProcessor.audioSynth.SetDistortionFunction(FunctionType::waveFold);
+                functionTypeLabel.setText("Wave Fold", juce::dontSendNotification);
             }
         };
     addAndMakeVisible(label1);
     label1.setText("Distortion", juce::dontSendNotification);
     label1.attachToComponent(&dialDistortion, false);
     label1.setFont(12);
-   
+
 
     //slider per il bias
     addAndMakeVisible(dialBias);
@@ -170,10 +193,10 @@ GCB_SynthAudioProcessorEditor::GCB_SynthAudioProcessorEditor (GCB_SynthAudioProc
     label3.setText("Gain", juce::dontSendNotification);
     label3.attachToComponent(&dialGain, false);
     label3.setFont(12);
-    
+
     addAndMakeVisible(border1);
     border1.setText("Waveshaper");
-    
+
     //slider per il filter
     addAndMakeVisible(dialFilter);
     dialFilter.setSliderStyle(juce::Slider::SliderStyle::Rotary);
@@ -192,17 +215,19 @@ GCB_SynthAudioProcessorEditor::GCB_SynthAudioProcessorEditor (GCB_SynthAudioProc
     for (int i = 0; i < maxVerticalSliders * 2; ++i) {
         auto slider = std::make_unique<juce::Slider>(); // Crea uno slider verticale e lo assegna a std::unique_ptr
         slider->setSliderStyle(juce::Slider::SliderStyle::LinearVertical);
-        slider->setTextBoxStyle(juce::Slider::TextBoxBelow, false, 30, 15);
+        slider->setTextBoxStyle(juce::Slider::TextBoxBelow, false, 40, 15);
         slider->setColour(juce::Slider::ColourIds::trackColourId, juce::Colours::whitesmoke);
+        slider->setColour(juce::Slider::ColourIds::textBoxOutlineColourId, juce::Colours::transparentWhite);
         slider->setRange(0.5, 5, 0.1);
+        slider->setTextValueSuffix(" ms");
         addAndMakeVisible(*slider);
 
         if (i < maxVerticalSliders) {
             filterSliders.push_back(std::move(slider)); // Aggiunge lo slider verticale al vettore
             auto* currentSlider = filterSliders.back().get();
-            currentSlider->onValueChange = [currentSlider, this,i]() {
+            currentSlider->onValueChange = [currentSlider, this, i]() {
                 float sliderValue = currentSlider->getValue();
-                DBG("Filter slider value changed: " << sliderValue);
+
                 audioProcessor.audioSynth.SetRampTargetValue(EnvType::lpFilterEnv, EnvState::attack, i, sliderValue);
                 };
             audioProcessor.audioSynth.AddEnvelopeRamp(EnvType::lpFilterEnv, EnvState::attack, currentSlider->getValue());
@@ -210,25 +235,25 @@ GCB_SynthAudioProcessorEditor::GCB_SynthAudioProcessorEditor (GCB_SynthAudioProc
         else {
             releseFilterSliders.push_back(std::move(slider)); // Aggiunge lo slider verticale al vettore
             auto* currentSlider = releseFilterSliders.back().get();
-            currentSlider->onValueChange = [currentSlider, this,i]() {
+            currentSlider->onValueChange = [currentSlider, this, i]() {
                 float sliderValue = currentSlider->getValue();
                 int releaseIndex = i - maxVerticalSliders;
-                DBG("Release slider value change: " << sliderValue);
+
                 audioProcessor.audioSynth.SetRampTargetValue(EnvType::lpFilterEnv, EnvState::release, releaseIndex, sliderValue);
                 };
             audioProcessor.audioSynth.AddEnvelopeRamp(EnvType::lpFilterEnv, EnvState::release, currentSlider->getValue());
         }
     }
 
-    addAndMakeVisible(filterAdd);
-    filterAdd.setText("AttackEnvelope");
-    filterAdd.setColour(juce::GroupComponent::ColourIds::outlineColourId, juce::Colours::indianred);
-    filterAdd.setTextLabelPosition(juce::Justification::centred);
+    addAndMakeVisible(filterAttackBorder);
+    filterAttackBorder.setText("AttackEnvelope");
+    filterAttackBorder.setColour(juce::GroupComponent::ColourIds::outlineColourId, juce::Colours::indianred);
+    filterAttackBorder.setTextLabelPosition(juce::Justification::centred);
 
-    addAndMakeVisible(filterRelese);
-    filterRelese.setText("ReleseEnvelope");
-    filterRelese.setColour(juce::GroupComponent::ColourIds::outlineColourId, juce::Colours::cyan);
-    filterRelese.setTextLabelPosition(juce::Justification::centred);
+    addAndMakeVisible(filterReleseBorder);
+    filterReleseBorder.setText("ReleseEnvelope");
+    filterReleseBorder.setColour(juce::GroupComponent::ColourIds::outlineColourId, juce::Colours::cyan);
+    filterReleseBorder.setTextLabelPosition(juce::Justification::centred);
 
     addAndMakeVisible(distortionToggle);
     distortionToggle.setButtonText("Enable WaveShaper");
@@ -244,7 +269,7 @@ GCB_SynthAudioProcessorEditor::GCB_SynthAudioProcessorEditor (GCB_SynthAudioProc
         audioProcessor.audioSynth.SetLPFilterActive(filterActive);
         };
 
-    setSize (1000, 550);
+    setSize(1000, 550);
 
 }
 
@@ -253,11 +278,11 @@ GCB_SynthAudioProcessorEditor::~GCB_SynthAudioProcessorEditor()
 }
 
 //==============================================================================
-void GCB_SynthAudioProcessorEditor::paint (juce::Graphics& g)
+void GCB_SynthAudioProcessorEditor::paint(juce::Graphics& g)
 {
     // (Our component is opaque, so we must completely fill the background with a solid colour)
 
-    // g.fillAll (getLookAndFeel().findColour (juce::ResizableWindow::backgroundColourId));
+    g.fillAll(getLookAndFeel().findColour(juce::ResizableWindow::backgroundColourId));
 
 }
 
@@ -282,8 +307,8 @@ void GCB_SynthAudioProcessorEditor::resized()
 
 
     // Imposta le dimensioni e la posizione dei dial all'interno dei bordi
-    dialOscillator.setBounds(border.getX() + (border.getWidth() - dialSize * 2 - dialSpacing) / 2, topMargin * 0.3, dialSize, dialSize);
-    releseTimeSlider.setBounds(dialOscillator.getRight() + 20, topMargin * 0.3, 130, dialSize);
+    dialOscillator.setBounds(border.getX() + (border.getWidth() - dialSize * 2 - dialSpacing) * 0.4, topMargin * 0.3, dialSize, dialSize);
+    releseTimeSlider.setBounds(dialOscillator.getRight() + 20, topMargin * 0.3, 130, 80);
     dialDistortion.setBounds(border1.getX() + dialSpacing, topMargin * 0.6, dialSize, dialSize);
     distortionToggle.setBounds(border1.getX() + dialSpacing, topMargin * 0.01, 150, dialSize);
     dialBias.setBounds(border1.getX() + (border1.getWidth() - dialSize) * 0.9, topMargin * 0.6, dialSize, dialSize);
@@ -295,7 +320,9 @@ void GCB_SynthAudioProcessorEditor::resized()
     label1.setBounds(dialDistortion.getX() + (dialSize - label1.getWidth()) + 18, dialDistortion.getY() - 18, label1.getWidth(), 25);
     label2.setBounds(dialBias.getX() + (dialSize - label2.getWidth()) + 33, dialBias.getY() - 18, label2.getWidth(), 25);
     label3.setBounds(dialGain.getX() + (dialSize - label3.getWidth()) + 33, dialGain.getY() - 18, label3.getWidth(), 25);
-    label4.setBounds(releseTimeSlider.getX() + (releseTimeSlider.getWidth() - label4.getWidth()) + 8, releseTimeSlider.getY() - 5, label4.getWidth(),25);
+    label4.setBounds(releseTimeSlider.getX() + (releseTimeSlider.getWidth() - label4.getWidth()) + 8, releseTimeSlider.getY() - 5, label4.getWidth(), 25);
+    waveTypeLabel.setBounds(dialOscillator.getX(), dialOscillator.getY() + dialOscillator.getHeight() - 20, dialOscillator.getWidth(), 25);
+    functionTypeLabel.setBounds(dialDistortion.getX(), dialDistortion.getY() + dialDistortion.getHeight() - 20, dialDistortion.getWidth(), 25);
 
     auto sliderWidth = border.getWidth() / maxVerticalSliders;
     auto sliderHeight = border.getHeight() * 0.5;
@@ -308,17 +335,17 @@ void GCB_SynthAudioProcessorEditor::resized()
         auto sliderReleaseFilter = releseFilterSliders[i].get();
 
         // Imposta la posizione dei slider per l'inviluppo dell'oscillatore
-        oscillatorAdd.setBounds(border.getX() + 20, border.getY() + sliderHeight - 55, sliderWidth + 175, sliderHeight - 75);
+        oscillatorAttackBorder.setBounds(border.getX() + 40, border.getY() + sliderHeight - 55, sliderWidth + 80, sliderHeight - 75);
         sliderOsc->setBounds(border.getX() + i * sliderWidth, border.getY() + sliderHeight - 40, sliderWidth, sliderHeight - 100);
 
-        oscillatorRelese.setBounds(border.getX() + 20, border.getY() + sliderHeight + 70, sliderWidth + 175, sliderHeight - 80);
+        oscillatorReleseBorder.setBounds(border.getX() + 40, border.getY() + sliderHeight + 70, sliderWidth + 80, sliderHeight - 80);
         sliderReleaseOsc->setBounds(border.getX() + i * sliderWidth, border.getY() + sliderHeight + 80, sliderWidth, sliderHeight - 100);
 
         // Imposta la posizione dei slider per l'inviluppo del filtro
-        filterAdd.setBounds(border2.getX() + 20, border2.getY() + sliderHeight - 55, sliderWidth + 175, sliderHeight - 75);
+        filterAttackBorder.setBounds(border2.getX() + 40, border2.getY() + sliderHeight - 55, sliderWidth + 80, sliderHeight - 75);
         sliderFilter->setBounds(border2.getX() + i * sliderWidth, border2.getY() + sliderHeight - 40, sliderWidth, sliderHeight - 100);
 
-        filterRelese.setBounds(border2.getX() + 20, border2.getY() + sliderHeight + 70, sliderWidth + 175, sliderHeight - 80);
+        filterReleseBorder.setBounds(border2.getX() + 40, border2.getY() + sliderHeight + 70, sliderWidth + 80, sliderHeight - 80);
         sliderReleaseFilter->setBounds(border2.getX() + i * sliderWidth, border2.getY() + sliderHeight + 80, sliderWidth, sliderHeight - 100);
     }
 
