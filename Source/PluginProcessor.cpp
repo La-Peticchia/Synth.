@@ -99,7 +99,14 @@ void GCB_SynthAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBl
 {
     // Use this method as the place to do any pre-playback
     // initialisation that you need..
-    audioSynth.prepare({ sampleRate, (juce::uint32)samplesPerBlock, 2 });
+
+    juce::dsp::ProcessSpec spec { sampleRate, (juce::uint32)samplesPerBlock, 2 };
+    audioSynth.prepare(spec);
+
+    limiter.prepare(spec);
+    limiter.setThreshold(0.f);
+    limiter.setRelease(300.f);
+
     midiMessageCollector.reset(sampleRate);
 }
 
@@ -149,11 +156,14 @@ void GCB_SynthAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, ju
     audioSynth.renderNextBlock(buffer, midiMessages, 0, buffer.getNumSamples());
 
     //delay.processBlock(buffer);
-    flanger.processBlock(buffer);
-
+    //flanger.processBlock(buffer);
+    
+    //limiter.process(juce::dsp::ProcessContextReplacing<float>(juce::dsp::AudioBlock<float>(buffer)));
     int numSamples = buffer.getNumSamples();
     int startSample = 0;
-    
+
+    //juce::dsp::
+
     //float rms = 0.f;
     //for (int i = 0; i < buffer.getNumChannels(); i++)
     //    rms += buffer.getRMSLevel(i, startSample, numSamples);

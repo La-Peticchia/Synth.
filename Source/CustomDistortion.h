@@ -34,7 +34,7 @@ public:
         case softClip:
                 waveShaper.functionToUse = [](Type x)
                     {
-                        return juce::jlimit(Type(-1), Type(1), tanh(x));
+                        return juce::dsp::FastMathApproximations::tanh(x);
                         //return tanhApprox(x);
                     };
                 break;
@@ -110,7 +110,7 @@ private:
 
     //juce::dsp::LookupTableTransform<float> tanhApprox([](float x) {return tanh(x); }, -1.f, 1.f, 128);
     
-
+    
     float maxGain = 5, minGain = 1 / 5;
     float maxBias = 1, minBias = -1;
 
