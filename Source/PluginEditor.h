@@ -32,11 +32,13 @@ private:
     GCB_SynthAudioProcessor& audioProcessor;
     juce::MidiKeyboardComponent keyboardComp;
 
-    juce::Slider dialOscillator, dialDistortion, dialFilter, dialBias, dialGain, releseTimeSlider;
+    juce::Slider dialOscillator, dialDistortion, dialFilter, dialBias, dialGain;
     juce::Label label1, label2, label3, label4, waveTypeLabel, functionTypeLabel;
-    juce::GroupComponent border, border1, border2, oscillatorAttackBorder, oscillatorReleseBorder, filterAttackBorder, filterReleseBorder;
-    std::vector<std::unique_ptr<juce::Slider>> oscillatorSliders, filterSliders, releseOscillatorSliders, releseFilterSliders;
-    int maxVerticalSliders = 2;
+    juce::GroupComponent border, border1, border2, border3, border4, oscillatorAttackBorder, oscillatorReleaseBorder, filterAttackBorder, filterReleaseBorder;
+    std::vector<std::unique_ptr<juce::Slider>> attackOscillatorSliders, attackFilterSliders, releaseOscillatorSliders, releaseFilterSliders, flangerSliders, delaySliders;
+    int numAttackSliders = 4;
+    int numReleaseSliders = 3;
+    int numDelaySliders = 2;
     juce::ToggleButton distortionToggle, filterToggle;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(GCB_SynthAudioProcessorEditor)
