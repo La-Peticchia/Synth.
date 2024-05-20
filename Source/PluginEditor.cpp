@@ -26,13 +26,12 @@ GCB_SynthAudioProcessorEditor::GCB_SynthAudioProcessorEditor(GCB_SynthAudioProce
 	dialOscillator.setSliderStyle(juce::Slider::SliderStyle::Rotary);
 	dialOscillator.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 32, 16);
 	dialOscillator.setRange(0, 3, 1.5);
-	dialOscillator.setColour(juce::Slider::ColourIds::rotarySliderFillColourId, juce::Colours::white);
 	dialOscillator.setColour(juce::Slider::ColourIds::textBoxOutlineColourId, juce::Colours::transparentWhite);
 	dialOscillator.setColour(juce::Slider::ColourIds::textBoxTextColourId, juce::Colours::transparentWhite);
 
 	addAndMakeVisible(waveTypeLabel);
 	waveTypeLabel.setJustificationType(juce::Justification::centred);
-	waveTypeLabel.setFont(juce::Font(12.0f, juce::Font::italic));
+	waveTypeLabel.setFont(juce::Font(10.0f, juce::Font::italic));
 	waveTypeLabel.setText("Sine Wave", juce::dontSendNotification);
 
 	dialOscillator.onValueChange = [this]()
@@ -90,32 +89,33 @@ GCB_SynthAudioProcessorEditor::GCB_SynthAudioProcessorEditor(GCB_SynthAudioProce
 		}
 	}*/
 
-	// Create oscillator sliders
+	// Crea attack oscillator sliders
 	for (int i = 0; i < numAttackSliders; ++i) {
 		// Creazione e configurazione dello slider per l'attacco dell'oscillatore
 		auto oscillatorSlider = std::make_unique<juce::Slider>();
 		oscillatorSlider->setSliderStyle(juce::Slider::SliderStyle::LinearVertical);
 		oscillatorSlider->setTextBoxStyle(juce::Slider::TextBoxBelow, false, 50, 10);
-		oscillatorSlider->setColour(juce::Slider::ColourIds::trackColourId, juce::Colours::whitesmoke);
 		oscillatorSlider->setColour(juce::Slider::ColourIds::textBoxOutlineColourId, juce::Colours::transparentWhite);
 		oscillatorSlider->setRange(0, 1000, 1);
 		oscillatorSlider->setTextValueSuffix(" ms");
 		addAndMakeVisible(*oscillatorSlider);
+		oscillatorSlider->setLookAndFeel(&otherLookAndFeel);
 
-		// Aggiunta dello slider all'array degli slider per l'attacco dell'oscillatore
 		attackOscillatorSliders.push_back(std::move(oscillatorSlider));
 
-		// Cattura della variabile dello slider corrente
 		auto* currentOscillatorSlider = attackOscillatorSliders.back().get();
 
-		// Callback per l'aggiornamento del valore dello slider dell'oscillatore
 		currentOscillatorSlider->onValueChange = [currentOscillatorSlider, this, i]() {
 			float sliderValue = currentOscillatorSlider->getValue();
-			audioProcessor.audioSynth.SetRampTargetValue(EnvType::gainEnv, EnvState::attack, i, sliderValue);
+			if (i == 0 || i == 2) {
+				audioProcessor.audioSynth.SetRampTargetValue(EnvType::gainEnv, EnvState::attack, i, sliderValue);
+			}
+			else if (i == 1 || i == 3) {
+				audioProcessor.audioSynth.SetEnvelopeDuration(EnvType::gainEnv, sliderValue);
+			}
+			audioProcessor.audioSynth.AddEnvelopeRamp(EnvType::gainEnv, EnvState::attack, currentOscillatorSlider->getValue());
 			};
 
-		// Aggiunta dell'envelope ramp per l'attacco dell'oscillatore
-		audioProcessor.audioSynth.AddEnvelopeRamp(EnvType::gainEnv, EnvState::attack, currentOscillatorSlider->getValue());
 
 		// Creazione e configurazione dello slider per l'attacco del filtro
 		auto filterSlider = std::make_unique<juce::Slider>();
@@ -126,26 +126,27 @@ GCB_SynthAudioProcessorEditor::GCB_SynthAudioProcessorEditor(GCB_SynthAudioProce
 		filterSlider->setRange(0, 1000, 1);
 		filterSlider->setTextValueSuffix(" ms");
 		addAndMakeVisible(*filterSlider);
+		filterSlider->setLookAndFeel(&otherLookAndFeel);
 
-		// Aggiunta dello slider all'array degli slider per l'attacco del filtro
 		attackFilterSliders.push_back(std::move(filterSlider));
 
-		// Cattura della variabile dello slider corrente per il filtro
 		auto* currentFilterSlider = attackFilterSliders.back().get();
 
-		// Callback per l'aggiornamento del valore dello slider del filtro
 		currentFilterSlider->onValueChange = [currentFilterSlider, this, i]() {
 			float sliderValue = currentFilterSlider->getValue();
-			audioProcessor.audioSynth.SetRampTargetValue(EnvType::lpFilterEnv, EnvState::attack, i, sliderValue);
+			if (i == 0 || i == 2) {
+				audioProcessor.audioSynth.SetRampTargetValue(EnvType::lpFilterEnv, EnvState::attack, i, sliderValue);
+			}
+			else if (i == 1 || i == 3) {
+				audioProcessor.audioSynth.SetEnvelopeDuration(EnvType::lpFilterEnv, sliderValue);
+			}
+			audioProcessor.audioSynth.AddEnvelopeRamp(EnvType::lpFilterEnv, EnvState::attack, currentFilterSlider->getValue());
 			};
-
-		// Aggiunta dell'envelope ramp per l'attacco del filtro
-		audioProcessor.audioSynth.AddEnvelopeRamp(EnvType::lpFilterEnv, EnvState::attack, currentFilterSlider->getValue());
 	}
 
-	// Create release sliders
-	for (int i = 0; i < numReleaseSliders; ++i) {
-		// Creazione e configurazione dello slider per il rilascio dell'oscillatore
+	// Crea release sliders e flanger sliders
+	for (int i = 0; i < numRelFlaSliders; ++i) {
+
 		auto oscillatorSlider = std::make_unique<juce::Slider>();
 		oscillatorSlider->setSliderStyle(juce::Slider::SliderStyle::LinearVertical);
 		oscillatorSlider->setTextBoxStyle(juce::Slider::TextBoxBelow, false, 50, 10);
@@ -154,23 +155,31 @@ GCB_SynthAudioProcessorEditor::GCB_SynthAudioProcessorEditor(GCB_SynthAudioProce
 		oscillatorSlider->setRange(0, 1000, 1);
 		oscillatorSlider->setTextValueSuffix(" ms");
 		addAndMakeVisible(*oscillatorSlider);
+		oscillatorSlider->setLookAndFeel(&otherLookAndFeel);
 
-		// Aggiunta dello slider all'array degli slider per il rilascio dell'oscillatore
+
 		releaseOscillatorSliders.push_back(std::move(oscillatorSlider));
 
-		// Cattura della variabile dello slider corrente per l'oscillatore
+
 		auto* currentOscillatorSlider = releaseOscillatorSliders.back().get();
 
-		// Callback per l'aggiornamento del valore dello slider dell'oscillatore
 		currentOscillatorSlider->onValueChange = [currentOscillatorSlider, this, i]() {
 			float sliderValue = currentOscillatorSlider->getValue();
-			audioProcessor.audioSynth.SetRampTargetValue(EnvType::gainEnv, EnvState::release, i, sliderValue);
+			if (i == 0)
+			{
+				audioProcessor.audioSynth.SetRampTargetValue(EnvType::gainEnv, EnvState::release, i, sliderValue);
+			}
+
+			else if (i == 1 || i == 2) {
+				audioProcessor.audioSynth.SetEnvelopeDuration(EnvType::gainEnv, sliderValue);
+			}
+			
 			};
 
-		// Aggiunta dell'envelope ramp per il rilascio dell'oscillatore
+
 		audioProcessor.audioSynth.AddEnvelopeRamp(EnvType::gainEnv, EnvState::release, currentOscillatorSlider->getValue());
 
-		// Creazione e configurazione dello slider per il rilascio del filtro
+
 		auto filterSlider = std::make_unique<juce::Slider>();
 		filterSlider->setSliderStyle(juce::Slider::SliderStyle::LinearVertical);
 		filterSlider->setTextBoxStyle(juce::Slider::TextBoxBelow, false, 50, 10);
@@ -179,49 +188,123 @@ GCB_SynthAudioProcessorEditor::GCB_SynthAudioProcessorEditor(GCB_SynthAudioProce
 		filterSlider->setRange(0, 1000, 1);
 		filterSlider->setTextValueSuffix(" ms");
 		addAndMakeVisible(*filterSlider);
+		filterSlider->setLookAndFeel(&otherLookAndFeel);
 
-		// Aggiunta dello slider all'array degli slider per il rilascio del filtro
+
 		releaseFilterSliders.push_back(std::move(filterSlider));
 
-		// Cattura della variabile dello slider corrente per il filtro
+
 		auto* currentFilterSlider = releaseFilterSliders.back().get();
 
-		// Callback per l'aggiornamento del valore dello slider del filtro
+
 		currentFilterSlider->onValueChange = [currentFilterSlider, this, i]() {
 			float sliderValue = currentFilterSlider->getValue();
-			audioProcessor.audioSynth.SetRampTargetValue(EnvType::lpFilterEnv, EnvState::release, i, sliderValue);
+			if (i == 0) {
+				audioProcessor.audioSynth.SetRampTargetValue(EnvType::lpFilterEnv, EnvState::release, i, sliderValue);
+			}
+
+			else if (i == 1 || i == 2) {
+				audioProcessor.audioSynth.SetEnvelopeDuration(EnvType::lpFilterEnv, sliderValue);
+			}
 			};
 
-		// Aggiunta dell'envelope ramp per il rilascio del filtro
+
 		audioProcessor.audioSynth.AddEnvelopeRamp(EnvType::lpFilterEnv, EnvState::release, currentFilterSlider->getValue());
 
-		// Creazione e configurazione dello slider per il flanger
+
 		auto flangerSlider = std::make_unique<juce::Slider>();
 		flangerSlider->setSliderStyle(juce::Slider::SliderStyle::LinearVertical);
 		flangerSlider->setTextBoxStyle(juce::Slider::TextBoxBelow, false, 50, 10);
 		flangerSlider->setColour(juce::Slider::ColourIds::trackColourId, juce::Colours::whitesmoke);
 		flangerSlider->setColour(juce::Slider::ColourIds::textBoxOutlineColourId, juce::Colours::transparentWhite);
-		flangerSlider->setRange(0, 1000, 1);
-		flangerSlider->setTextValueSuffix(" ms");
+
+		switch (i) {
+		case 0:
+			flangerSlider->setRange(0.005, 0.015, 0.001);
+			flangerSlider->setTextValueSuffix(" ms");
+			break;
+		case 1:
+			flangerSlider->setRange(0.5, 1.0, 0.1);
+			flangerSlider->setTextValueSuffix(" dB");
+			break;
+		case 2:
+			flangerSlider->setRange(1.0, 5.0, 1.0);
+			flangerSlider->setTextValueSuffix(" Hz");
+			break;
+		}
 		addAndMakeVisible(*flangerSlider);
+		flangerSlider->setLookAndFeel(&otherLookAndFeel);
 
 		flangerSliders.push_back(std::move(flangerSlider));
+
+
+		auto* currentFlangerSlider = flangerSliders.back().get();
+
+		if (i == 0) {
+			// Slider per il tempo di delay
+			currentFlangerSlider->onValueChange = [currentFlangerSlider, this]() {
+				float sliderValue = currentFlangerSlider->getValue();
+				audioProcessor.flanger.SetDelay(sliderValue);
+				};
+		}
+		else if (i == 1) {
+			// Slider per il gain
+			currentFlangerSlider->onValueChange = [currentFlangerSlider, this]() {
+				float sliderValue = currentFlangerSlider->getValue();
+				audioProcessor.flanger.SetGain(sliderValue);
+				};
+		}
+		else if (i == 2) {
+			// Slider per la frequency
+			currentFlangerSlider->onValueChange = [currentFlangerSlider, this]() {
+				float sliderValue = currentFlangerSlider->getValue();
+				audioProcessor.flanger.SetFrequency(sliderValue);
+				};
+		}
+
 	}
 
 
 	for (int i = 0; i < numDelaySliders; ++i) {
-		
-		// Creazione e configurazione dello slider per il flanger
+
+
 		auto delaySlider = std::make_unique<juce::Slider>();
 		delaySlider->setSliderStyle(juce::Slider::SliderStyle::LinearVertical);
 		delaySlider->setTextBoxStyle(juce::Slider::TextBoxBelow, false, 50, 10);
 		delaySlider->setColour(juce::Slider::ColourIds::trackColourId, juce::Colours::whitesmoke);
 		delaySlider->setColour(juce::Slider::ColourIds::textBoxOutlineColourId, juce::Colours::transparentWhite);
-		delaySlider->setRange(0, 1000, 1);
-		delaySlider->setTextValueSuffix(" ms");
 		addAndMakeVisible(*delaySlider);
+		delaySlider->setLookAndFeel(&otherLookAndFeel);
+
+		switch (i) {
+		case 0:
+			delaySlider->setRange(0.05, 0.15, 0.01);
+			delaySlider->setTextValueSuffix(" ms");
+			break;
+		case 1:
+			delaySlider->setRange(0.5, 0.9, 0.1);
+			delaySlider->setTextValueSuffix(" dB");
+			break;
+		}
 
 		delaySliders.push_back(std::move(delaySlider));
+
+		auto* currentdelaySlider = delaySliders.back().get();
+
+		if (i == 0) {
+			// Slider per il tempo di delay
+			currentdelaySlider->onValueChange = [currentdelaySlider, this]() {
+				float sliderValue = currentdelaySlider->getValue();
+				audioProcessor.delay.SetDelay(sliderValue);
+				};
+		}
+		else if (i == 1) {
+			// Slider per il gain
+			currentdelaySlider->onValueChange = [currentdelaySlider, this]() {
+				float sliderValue = currentdelaySlider->getValue();
+				audioProcessor.delay.SetGain(sliderValue);
+				};
+		}
 	}
 
 
@@ -302,9 +385,10 @@ GCB_SynthAudioProcessorEditor::GCB_SynthAudioProcessorEditor(GCB_SynthAudioProce
 	addAndMakeVisible(dialGain);
 	dialGain.setSliderStyle(juce::Slider::SliderStyle::Rotary);
 	dialGain.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 30, 15);
-	dialGain.setRange(1.0, 5.0, 1.0);
+	dialGain.setRange(2.0, 5.0, 1.0);
 	dialGain.setColour(juce::Slider::ColourIds::rotarySliderFillColourId, juce::Colours::white);
 	dialGain.setColour(juce::Slider::ColourIds::textBoxOutlineColourId, juce::Colours::transparentWhite);
+	dialGain.setColour(juce::Slider::ColourIds::textBoxTextColourId , juce::Colours::transparentWhite);
 	dialGain.onValueChange = [this]() {
 		float gainValue = dialGain.getValue();
 		audioProcessor.audioSynth.SetDistortionGain(gainValue);
@@ -325,6 +409,7 @@ GCB_SynthAudioProcessorEditor::GCB_SynthAudioProcessorEditor(GCB_SynthAudioProce
 	dialFilter.setRange(0.3, 1.3, 0.1);
 	dialFilter.setColour(juce::Slider::ColourIds::rotarySliderFillColourId, juce::Colours::white);
 	dialFilter.setColour(juce::Slider::ColourIds::textBoxOutlineColourId, juce::Colours::transparentWhite);
+	dialFilter.setColour(juce::Slider::ColourIds::textBoxTextColourId, juce::Colours::transparentWhite);
 	dialFilter.onValueChange = [this]() {
 		double filterValue = dialFilter.getValue();
 		audioProcessor.audioSynth.SetLPFilterResonance(filterValue);
@@ -397,6 +482,26 @@ GCB_SynthAudioProcessorEditor::GCB_SynthAudioProcessorEditor(GCB_SynthAudioProce
 	addAndMakeVisible(border4);
 	border4.setText("Flanger");
 
+	addAndMakeVisible(delayToggle);
+	delayToggle.setButtonText("Enable");
+	delayToggle.onClick = [this]() {
+		bool delayActive = delayToggle.getToggleState();
+		audioProcessor.delay.processSample(delayActive);
+		};
+
+	addAndMakeVisible(flangerToggle);
+	flangerToggle.setButtonText("Enable");
+	flangerToggle.onClick = [this]() {
+		bool flangerActive = flangerToggle.getToggleState();
+		audioProcessor.flanger.processSample(flangerActive);
+		};
+
+	dialOscillator.setLookAndFeel(&otherLookAndFeel);
+	dialDistortion.setLookAndFeel(&otherLookAndFeel);
+	dialFilter.setLookAndFeel(&otherLookAndFeel);
+	dialBias.setLookAndFeel(&otherLookAndFeel);
+	dialGain.setLookAndFeel(&otherLookAndFeel);
+
 	setSize(1000, 550);
 
 }
@@ -410,7 +515,7 @@ void GCB_SynthAudioProcessorEditor::paint(juce::Graphics& g)
 {
 	// (Our component is opaque, so we must completely fill the background with a solid colour)
 
-	g.fillAll(getLookAndFeel().findColour(juce::ResizableWindow::backgroundColourId));
+	g.fillAll(juce::Colours::transparentBlack);
 
 }
 
@@ -443,10 +548,6 @@ void GCB_SynthAudioProcessorEditor::resized()
 	dialGain.setBounds(border1.getX() + dialSpacing, topMargin * 1.95, dialSize, dialSize);
 	dialFilter.setBounds(border2.getX() + (border2.getWidth() - dialSize) / 2, topMargin * 0.25, dialSize, dialSize);
 
-	// Imposta dimensioni e posizione dei togglebutton 
-	distortionToggle.setBounds(border1.getX() + dialSpacing, topMargin - 155, 150, dialSize);
-	filterToggle.setBounds(border2.getX() + dialSpacing, topMargin - 155, 150, dialSize);
-
 	// Imposta la posizione delle etichette
 	label1.setBounds(dialDistortion.getX(), dialDistortion.getY() - 15, label1.getWidth(), 25);
 	label2.setBounds(dialBias.getX(), dialBias.getY() - 15, label2.getWidth(), 25);
@@ -455,8 +556,8 @@ void GCB_SynthAudioProcessorEditor::resized()
 	functionTypeLabel.setBounds(dialDistortion.getX(), dialDistortion.getY() + dialDistortion.getHeight() - 30, dialDistortion.getWidth(), 25);
 
 	auto attackSliderWidth = border.getWidth() / numAttackSliders;
-	auto releaseSliderWidth = border.getWidth() / numReleaseSliders;
-	auto flangerSliderWidth = border4.getWidth() / numReleaseSliders;
+	auto releaseSliderWidth = border.getWidth() / numRelFlaSliders;
+	auto flangerSliderWidth = border4.getWidth() / numRelFlaSliders;
 	auto delaySliderWidth = border3.getWidth() / numDelaySliders;
 	auto sliderHeight = border.getHeight() * 0.5;
 
@@ -464,30 +565,69 @@ void GCB_SynthAudioProcessorEditor::resized()
 	for (int i = 0; i < numAttackSliders; ++i) {
 		auto sliderattackOsc = attackOscillatorSliders[i].get();
 		auto sliderattackFil = attackFilterSliders[i].get();
-		sliderattackOsc->setBounds(border.getX() + i * attackSliderWidth, border.getY() + sliderHeight - 40, attackSliderWidth, sliderHeight - 100);
-		oscillatorAttackBorder.setBounds(border.getX() + 12, sliderattackOsc->getY() - 30, attackSliderWidth * 4 - 24, sliderHeight - 60);
-		sliderattackFil->setBounds(border2.getX() + i * attackSliderWidth, border2.getY() + sliderHeight - 40, attackSliderWidth, sliderHeight - 100);
-		filterAttackBorder.setBounds(border2.getX() + 12, sliderattackFil->getY() - 30, attackSliderWidth * 4 - 24, sliderHeight - 60);
+
+		auto* oscillatorLabel = new juce::Label();
+		oscillatorLabel->setText((i == 0 || i == 2) ? "Value" : "Duration", juce::dontSendNotification);
+		oscillatorLabel->setJustificationType(juce::Justification::centred);
+		oscillatorLabel->setFont(10);
+		addAndMakeVisible(oscillatorLabel);
+
+		auto* filterLabel = new juce::Label();
+		filterLabel->setText((i == 0 || i == 2) ? "Value" : "Duration", juce::dontSendNotification);
+		filterLabel->setJustificationType(juce::Justification::centred);
+		filterLabel->setFont(10);
+		addAndMakeVisible(filterLabel);
+
+		sliderattackOsc->setBounds(border.getX() + i * attackSliderWidth, border.getY() + sliderHeight - 50, attackSliderWidth, sliderHeight - 110);
+		oscillatorAttackBorder.setBounds(border.getX() + 12, sliderattackOsc->getY() - 30, attackSliderWidth * 4 - 24, sliderHeight - 70);
+		oscillatorLabel->setBounds(sliderattackOsc->getX(), sliderattackOsc->getY() - 15, sliderattackOsc->getWidth(), 20);
+
+		sliderattackFil->setBounds(border2.getX() + i * attackSliderWidth, border2.getY() + sliderHeight - 50, attackSliderWidth, sliderHeight - 110);
+		filterAttackBorder.setBounds(border2.getX() + 12, sliderattackFil->getY() - 30, attackSliderWidth * 4 - 24, sliderHeight - 70);
+		filterLabel->setBounds(sliderattackFil->getX(), sliderattackFil->getY() - 15, sliderattackFil->getWidth(), 20);
 	}
 
 	// Posizionamento degli slider di rilascio
-	for (int i = 0; i < numReleaseSliders; ++i) {
+	for (int i = 0; i < numRelFlaSliders; ++i) {
 		auto sliderReleaseOsc = releaseOscillatorSliders[i].get();
 		auto sliderReleaseFil = releaseFilterSliders[i].get();
 		auto sliderFlanger = flangerSliders[i].get();
 
-		sliderReleaseOsc->setBounds(border.getX() + i * releaseSliderWidth, border.getY() + sliderHeight + 80, releaseSliderWidth, sliderHeight - 100);
-		oscillatorReleaseBorder.setBounds(border.getX() + 15, sliderReleaseOsc->getY() - 10, releaseSliderWidth * 3 - 30, sliderHeight - 80);
-		sliderReleaseFil->setBounds(border2.getX() + i * releaseSliderWidth, border2.getY() + sliderHeight + 80, releaseSliderWidth, sliderHeight - 100);
-		filterReleaseBorder.setBounds(border2.getX() + 15, sliderReleaseFil->getY() - 10, releaseSliderWidth * 3 - 30, sliderHeight - 80);
+		auto* oscillatorLabel = new juce::Label();
+		oscillatorLabel->setText((i == 0) ? "Value" : "Duration", juce::dontSendNotification);
+		oscillatorLabel->setJustificationType(juce::Justification::centred);
+		addAndMakeVisible(oscillatorLabel);
+		oscillatorLabel->setFont(10);
+
+		auto* filterLabel = new juce::Label();
+		filterLabel->setText((i == 0) ? "Value" : "Duration", juce::dontSendNotification);
+		auto* label = new juce::Label();
+		filterLabel->setJustificationType(juce::Justification::centred);
+		addAndMakeVisible(filterLabel);
+		filterLabel->setFont(10);
+
+		sliderReleaseOsc->setBounds(border.getX() + i * releaseSliderWidth, border.getY() + sliderHeight + 80, releaseSliderWidth, sliderHeight - 110);
+		oscillatorReleaseBorder.setBounds(border.getX() + 15, sliderReleaseOsc->getY() - 30, releaseSliderWidth * 3 - 30, sliderHeight - 65);
+		oscillatorLabel->setBounds(sliderReleaseOsc->getX(), sliderReleaseOsc->getY() - 15, sliderReleaseOsc->getWidth(), 20);
+		
+		sliderReleaseFil->setBounds(border2.getX() + i * releaseSliderWidth, border2.getY() + sliderHeight + 80, releaseSliderWidth, sliderHeight - 110);
+		filterReleaseBorder.setBounds(border2.getX() + 15, sliderReleaseFil->getY() - 30, releaseSliderWidth * 3 - 30, sliderHeight - 65);
+		filterLabel->setBounds(sliderReleaseFil->getX(), sliderReleaseFil->getY() - 15, sliderReleaseFil->getWidth(), 20);
 
 		sliderFlanger->setBounds(border4.getX() + i * flangerSliderWidth, border4.getY() + border4.getHeight() / 4, flangerSliderWidth, sliderHeight - 100);
 	}
 
+	// Posizionamento degli slider di delay
 	for (int i = 0; i < numDelaySliders; ++i) {
 		auto sliderDelay = delaySliders[i].get();
 		sliderDelay->setBounds(border3.getX() + i * delaySliderWidth, border3.getY() + border3.getHeight() / 4, delaySliderWidth, sliderHeight - 100);
 	}
+
+	// Imposta dimensioni e posizione dei togglebutton 
+	distortionToggle.setBounds(border1.getX() + dialSpacing, topMargin - 155, 150, dialSize);
+	filterToggle.setBounds(border2.getX() + dialSpacing, topMargin - 155, 150, dialSize);
+	delayToggle.setBounds(border3.getX() + dialSpacing, topMargin - 155, 150, dialSize);
+	flangerToggle.setBounds(border4.getX() + dialSpacing, border4.getY() - flangerSliderWidth / 3, 150, dialSize);
 }
 
 
