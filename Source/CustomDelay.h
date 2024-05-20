@@ -24,6 +24,8 @@ public:
     }
 
     void processBlock(juce::AudioBuffer<float>& buffer) {
+        if (!enabled)
+            return;
 
         int numSamples = buffer.getNumSamples();
         int startSample = 0, channels = buffer.getNumChannels();
@@ -39,17 +41,6 @@ public:
         
     }
 
-    float processSample(float sample) {
-
-        float pop = delayLine.back();
-        delayLine.pop_back();
-
-        float out = sample + pop;
-        delayLine.insert(delayLine.begin(), sample + pop * gain);
-        
-        return out;
-    }
-
     void SetGain(float value ) {
         gain = juce::jlimit(0.1f, 0.9f, value);
     }
@@ -63,10 +54,30 @@ public:
         sampleRate = value;
     }
 
+    void SetActive(bool tf) {
+        enabled = tf;
+    }
 private:
 
     std::vector<float> delayLine;
     int lineLenght = 0;
     float sampleRate = DEFAULT_SAMPLE_RATE;
     float gain = DEFAULT_GAIN;
+    bool enabled = true;
+
+    float processSample(float sample) {
+
+        float pop = delayLine.back();
+        delayLine.pop_back();
+
+        float out = sample + pop;
+        delayLine.insert(delayLine.begin(), out * gain);
+
+        
+
+        //if (out == 0.f)
+        //    DBG("error");
+
+        return out;
+    }
 };

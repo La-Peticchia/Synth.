@@ -53,7 +53,7 @@ public:
         }
         else
         {
-            //envValue.reset(sampleRate, attacks[0]->duration);
+            envValue.reset(sampleRate, attacks[0]->duration);
             envValue.setTargetValue(attacks[0]->targetValue);
             rampCount++;
         }
@@ -85,7 +85,7 @@ public:
         }
         else
         {
-            //envValue.reset(sampleRate, releases[0]->duration);
+            envValue.reset(sampleRate, releases[0]->duration);
             envValue.setTargetValue(releases[0]->targetValue);
             rampCount++;
         }
@@ -113,6 +113,7 @@ public:
 
                 return nextVal;
             }
+            envValue.reset(sampleRate,currentRamps[rampCount]->duration);
             envValue.setTargetValue(currentRamps[rampCount++]->targetValue);
         }
         return nextVal;
@@ -120,6 +121,7 @@ public:
     }
 
     void ResetToZero(double sampleRate) {
+        this->sampleRate = sampleRate;
         envValue.setCurrentAndTargetValue(0.f);
         envValue.reset(sampleRate, rampDuration);
     }
@@ -149,7 +151,7 @@ private:
     EnvState currentState = idle;
     juce::LinearSmoothedValue<float> envValue{ 0.0f };
     juce::OwnedArray<Ramp> currentRamps;
-
+    float sampleRate = DEFAULT_SAMPLE_RATE;
     int rampCount = 0;
     float rampDuration = DEFAULT_RAMP_DURATION;
 };

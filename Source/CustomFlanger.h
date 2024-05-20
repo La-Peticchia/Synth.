@@ -24,6 +24,8 @@ public:
     }
 
     void processBlock(juce::AudioBuffer<float>& buffer) {
+        if (!enabled)
+            return;
 
         int numSamples = buffer.getNumSamples();
         int startSample = 0, channels = buffer.getNumChannels();
@@ -39,16 +41,6 @@ public:
 
     }
 
-    float processSample(float sample) {
-
-        int index = (int)Map(std::sin(currentAngle));
-        float out = sample + delayLine[index] * gain;
-        UpdateAngle();
-        delayLine.pop_back();
-        delayLine.insert(delayLine.begin(), sample);
-
-        return out;
-    }
 
     void SetGain(float value) {
         gain = value;
@@ -67,6 +59,9 @@ public:
         sampleRate = value;
     }
 
+    void SetActive(bool tf) {
+        enabled = tf;
+    }
 
 private:
     
@@ -74,6 +69,7 @@ private:
     std::vector<float> delayLine;
     int lineLenght = 0;
     float deltaAngle, currentAngle, gain = DEFAULT_GAIN, sampleRate = DEFAULT_SAMPLE_RATE;
+    bool enabled = true;
 
     void UpdateAngle() {
         currentAngle = std::fmod(currentAngle + deltaAngle, 2 * juce::MathConstants<float>::pi);
@@ -82,5 +78,16 @@ private:
     float Map(float val) {
         float m = (lineLenght - 1) / 2;
         return val * m + m;
+    }
+
+    float processSample(float sample) {
+
+        int index = (int)Map(std::sin(currentAngle));
+        float out = sample + delayLine[index] * gain;
+        UpdateAngle();
+        delayLine.pop_back();
+        delayLine.insert(delayLine.begin(), sample);
+
+        return out;
     }
 };

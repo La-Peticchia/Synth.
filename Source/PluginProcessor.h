@@ -57,8 +57,8 @@ public:
 
     juce::MidiKeyboardState keyboardState;
     AudioSynth audioSynth;
-    CustomDelay delay = CustomDelay(DEFAULT_SAMPLE_RATE, 0.5f, 0.8f);
-    CustomFlanger flanger = CustomFlanger(DEFAULT_SAMPLE_RATE, 2.f, 0.13f, 0.3f);
+    CustomDelay delay ;
+    CustomFlanger flanger ;
     juce::dsp::Limiter<float> limiter;
     
 private:

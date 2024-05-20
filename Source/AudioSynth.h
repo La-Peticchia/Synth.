@@ -170,13 +170,13 @@ class Voice : public juce::SynthesiserVoice {
             coeffRef = cRef;
         }
 
-        void AddEnvelopeRamp(EnvType type, EnvState state, float value) {
+        void AddEnvelopeRamp(EnvType type, EnvState state, float value, float duration = DEFAULT_RAMP_DURATION) {
             
             if (state != attack && state != release)
                 return;
             auto currentGen = (state == gainEnv) ? &gainEnvGen : &cutOffEnvGen;
             auto currentRamps = (type == attack) ? &currentGen->attacks : &currentGen->releases;
-            currentRamps->insert(currentRamps->size()-1, new Ramp(value, DEFAULT_RAMP_DURATION));
+            currentRamps->insert(currentRamps->size()-1, new Ramp(value, duration));
 
             //currentRamps->add(new Ramp(value, DEFAULT_RAMP_DURATION));
         }
@@ -199,9 +199,18 @@ class Voice : public juce::SynthesiserVoice {
 
         }
 
+        void SetRampDuration(EnvType type, EnvState state, int index, float value) {
+            if (state != attack && state != release)
+                return;
+            auto currentGen = (type == gainEnv) ? &gainEnvGen : &cutOffEnvGen;
+            auto currentRamps = (state == attack) ? &currentGen->attacks : &currentGen->releases;
+            (*currentRamps)[index]->duration = value;
+
+        }
+
         void SetEnvDuration(EnvType type, float value) {
             auto currentGen = (type == gainEnv) ? &gainEnvGen : &cutOffEnvGen;
-            currentGen->SetEnvDuration(value, getSampleRate()/SAMPLE_SKIPS);
+            currentGen->SetEnvDuration(value, GetSkippedSampleRate());
         }
 
 

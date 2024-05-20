@@ -24,6 +24,8 @@ GCB_SynthAudioProcessor::GCB_SynthAudioProcessor()://keyboardComp(keyboardState,
 {
     keyboardState.addListener(&midiMessageCollector);
 
+
+
 }
 
 GCB_SynthAudioProcessor::~GCB_SynthAudioProcessor()
@@ -102,7 +104,8 @@ void GCB_SynthAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBl
 
     juce::dsp::ProcessSpec spec { sampleRate, (juce::uint32)samplesPerBlock, 2 };
     audioSynth.prepare(spec);
-
+    delay = CustomDelay(sampleRate, 0.05f, 0.9f);
+    flanger = CustomFlanger(sampleRate, 2.f, 0.13f, 0.3f);
     limiter.prepare(spec);
     limiter.setThreshold(0.f);
     limiter.setRelease(300.f);
