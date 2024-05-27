@@ -283,12 +283,12 @@ GCB_SynthAudioProcessorEditor::GCB_SynthAudioProcessorEditor(GCB_SynthAudioProce
 
 
 	addAndMakeVisible(oscillatorAttackBorder);
-	oscillatorAttackBorder.setText("AttackEnvelope");
+	oscillatorAttackBorder.setText("Attack");
 	oscillatorAttackBorder.setColour(juce::GroupComponent::ColourIds::outlineColourId, juce::Colours::indianred);
 	oscillatorAttackBorder.setTextLabelPosition(juce::Justification::centred);
 
 	addAndMakeVisible(oscillatorReleaseBorder);
-	oscillatorReleaseBorder.setText("ReleseEnvelope");
+	oscillatorReleaseBorder.setText("Release");
 	oscillatorReleaseBorder.setColour(juce::GroupComponent::ColourIds::outlineColourId, juce::Colours::cyan);
 	oscillatorReleaseBorder.setTextLabelPosition(juce::Justification::centred);
 
@@ -393,12 +393,12 @@ GCB_SynthAudioProcessorEditor::GCB_SynthAudioProcessorEditor(GCB_SynthAudioProce
 	border2.setText("Filter");
 
 	addAndMakeVisible(filterAttackBorder);
-	filterAttackBorder.setText("AttackEnvelope");
+	filterAttackBorder.setText("Attack");
 	filterAttackBorder.setColour(juce::GroupComponent::ColourIds::outlineColourId, juce::Colours::indianred);
 	filterAttackBorder.setTextLabelPosition(juce::Justification::centred);
 
 	addAndMakeVisible(filterReleaseBorder);
-	filterReleaseBorder.setText("ReleseEnvelope");
+	filterReleaseBorder.setText("Release");
 	filterReleaseBorder.setColour(juce::GroupComponent::ColourIds::outlineColourId, juce::Colours::cyan);
 	filterReleaseBorder.setTextLabelPosition(juce::Justification::centred);
 
