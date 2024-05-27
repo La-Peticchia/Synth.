@@ -35,7 +35,6 @@ public:
                 waveShaper.functionToUse = [](Type x)
                     {
                         return juce::dsp::FastMathApproximations::tanh(x);
-                        //return tanhApprox(x);
                     };
                 break;
 
@@ -55,7 +54,7 @@ public:
         case absolute: 
             waveShaper.functionToUse = [](Type x)
                 {
-                    return std::fabs(x);
+                    return juce::jlimit(Type(-1), Type(1), std::fabs(x) - Type(1));
                 };
             break;
         default:
@@ -107,9 +106,6 @@ private:
         bias1Index
     };
     juce::dsp::ProcessorChain<juce::dsp::Gain<Type>, juce::dsp::Bias<Type>, juce::dsp::WaveShaper<Type>> processorChain;
-
-    //juce::dsp::LookupTableTransform<float> tanhApprox([](float x) {return tanh(x); }, -1.f, 1.f, 128);
-    
     
     float maxGain = 5, minGain = 1 / 5;
     float maxBias = 1, minBias = -1;

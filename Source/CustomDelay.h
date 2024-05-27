@@ -15,69 +15,84 @@
 class CustomDelay {
 public:
 
-    CustomDelay(float sampleRate = DEFAULT_SAMPLE_RATE, float timeInterval = DEFAULT_DELAY, float gain = DEFAULT_GAIN) {
-
-        lineLenght = (int)(timeInterval * sampleRate);
-        delayLine = std::vector<float>(lineLenght, 0.f);
-        this->gain = gain;
-
+    CustomDelay(float sampleRate = DEFAULT_SAMPLE_RATE) {
+        delayLine.setMaximumDelayInSamples(MAX_DELAY_TIME * sampleRate);
+        delayLine.setDelay(DEFAULT_DELAY * sampleRate);
+        feedBack.setCurrentAndTargetValue(DEFAULT_FEEDBACK_GAIN);
+        dry.setCurrentAndTargetValue(1.f);
+        wet.setCurrentAndTargetValue(1.f);
+        this->sampleRate = sampleRate;
     }
 
     void processBlock(juce::AudioBuffer<float>& buffer) {
+
         if (!enabled)
             return;
 
-        int numSamples = buffer.getNumSamples();
-        int startSample = 0, channels = buffer.getNumChannels();
+        int channels = buffer.getNumChannels(), numSamples = buffer.getNumSamples(), startSample = 0;
         auto pointers = buffer.getArrayOfWritePointers();
-
 
         while (numSamples--)
         {
             for (int i = 0; i < channels; i++)
-                pointers[i][startSample] = processSample(pointers[i][startSample]);
+                pointers[i][startSample] = processSample(i ,pointers[i][startSample]);
             startSample++;
         }
-        
+        lpFilter.snapToZero();
+
     }
 
-    void SetGain(float value ) {
-        gain = juce::jlimit(0.1f, 0.9f, value);
+    void prepare(juce::dsp::ProcessSpec spec) {
+        delayLine.prepare(spec);
+
+        lpFilter.coefficients = juce::dsp::IIR::Coefficients<float>::makeLowPass(spec.sampleRate, DELAY_LP_FILTER_FREQ);
+        lpFilter.prepare(spec);
+
+        feedBack.reset(spec.sampleRate, DEFAULT_RAMP_DURATION);
+        dry.reset(spec.sampleRate, DEFAULT_RAMP_DURATION);
+        wet.reset(spec.sampleRate, DEFAULT_RAMP_DURATION);
     }
 
-    void SetDelay(float value ) {
-        lineLenght = (int)(value * sampleRate);
-        delayLine = std::vector<float>(lineLenght, 0.f);
+    float processSample(int channel, float sample) {
+        float out = delayLine.popSample(channel);
+        out = lpFilter.processSample(out);
+
+        delayLine.pushSample(channel,sample + out * feedBack.getNextValue());
+        return out * wet.getNextValue() + sample * dry.getNextValue();
     }
 
-    void SetSampleRate(float value ) {
-        sampleRate = value;
+    void SetDelay(float value){
+        DBG(value);
+        delayLine.setDelay(value * sampleRate);
+
     }
 
-    void SetActive(bool tf) {
+    void SetFeedback(float value) {
+        feedBack.setTargetValue(value);
+    }
+
+    void SetDry(float value) {
+        dry.setTargetValue(value);
+    }
+    
+    void SetWet(float value) {
+        wet.setTargetValue(value);
+    }
+
+    void SetActive(bool tf)
+    {
         enabled = tf;
     }
+
 private:
 
-    std::vector<float> delayLine;
-    int lineLenght = 0;
-    float sampleRate = DEFAULT_SAMPLE_RATE;
-    float gain = DEFAULT_GAIN;
-    bool enabled = true;
+    bool enabled = false;
 
-    float processSample(float sample) {
+    juce::LinearSmoothedValue<float> feedBack, dry, wet;
+    juce::dsp::DelayLine<float> delayLine;
+    juce::dsp::IIR::Filter<float> lpFilter;
 
-        float pop = delayLine.back();
-        delayLine.pop_back();
-
-        float out = sample + pop;
-        delayLine.insert(delayLine.begin(), out * gain);
-
-        
-
-        //if (out == 0.f)
-        //    DBG("error");
-
-        return out;
-    }
+    float sampleRate;
 };
+
+

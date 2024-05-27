@@ -29,7 +29,6 @@ public:
 
     CustomEnvelope() {
 
-
     }
 
     void Attack() {
@@ -38,18 +37,47 @@ public:
         if (currentState == release) {
 
             float prevTargetValue = 0;
+            Ramp maxRamp = Ramp(0, 0);
             for (int i = 0; i < attacks.size(); i++)
             {
+                float currentVal = envValue.getCurrentValue(), targetValue = attacks[i]->targetValue, duration = attacks[i]->duration;
 
-                if ((attacks[i]->targetValue > prevTargetValue && attacks[i]->targetValue > envValue.getCurrentValue()) || (attacks[i]->targetValue < prevTargetValue && attacks[i]->targetValue < envValue.getCurrentValue())) {
-                    //envValue.reset(sampleRate, attacks[i]->duration);
-                    envValue.setTargetValue(attacks[i]->targetValue);
+                if (currentVal <= targetValue)
+                {
+                    float tmp = (targetValue - currentVal) / (targetValue - prevTargetValue);
+                    envValue.setCurrentAndTargetValue(currentVal);
+                    envValue.reset(sampleRate, duration * tmp);
+                    envValue.setTargetValue(targetValue);
                     break;
                 }
+
+                if (maxRamp.targetValue < targetValue) {
+                    maxRamp.targetValue = targetValue;
+                    maxRamp.duration = duration;
+                }
+
+                if (i == attacks.size() - 1) {
+
+                    envValue.setCurrentAndTargetValue(currentVal);
+                    envValue.reset(sampleRate, maxRamp.duration);
+                    envValue.setTargetValue(maxRamp.targetValue);
+                    break;
+                }
+
+
+                //if ((attacks[i]->targetValue > prevTargetValue && attacks[i]->targetValue > envValue.getCurrentValue()) || (attacks[i]->targetValue < prevTargetValue && attacks[i]->targetValue < envValue.getCurrentValue())) {
+                //    
+                //    envValue.setCurrentAndTargetValue(envValue.getCurrentValue());
+                //    envValue.reset(sampleRate, attacks[i]->duration);
+                //    envValue.setTargetValue(attacks[i]->targetValue);
+                //    break;
+                //}
 
                 rampCount++;
                 prevTargetValue = attacks[i]->targetValue;
             }
+
+
         }
         else
         {
@@ -69,15 +97,42 @@ public:
         rampCount = 0;
 
         if (currentState == attack) {
-            float prevTargetValue = 1;
+            float prevTargetValue = attacks[attacks.size()-1]->targetValue;
+            Ramp maxRamp = Ramp(0, 0);
+
             for (int i = 0; i < releases.size(); i++)
             {
 
-                if ((releases[i]->targetValue > prevTargetValue && releases[i]->targetValue > envValue.getCurrentValue()) || (releases[i]->targetValue < prevTargetValue && releases[i]->targetValue < envValue.getCurrentValue())) {
-                    //envValue.reset(sampleRate, releases[i]->duration);
-                    envValue.setTargetValue(releases[i]->targetValue);
+                float currentVal = envValue.getCurrentValue(), targetValue = releases[i]->targetValue, duration = releases[i]->duration;
+
+                if ((currentVal >= prevTargetValue && currentVal <= targetValue) || (currentVal >= targetValue && currentVal <= prevTargetValue))
+                {
+                    float tmp = (targetValue - currentVal) / (targetValue - prevTargetValue);
+                    envValue.setCurrentAndTargetValue(currentVal);
+                    envValue.reset(sampleRate, duration * tmp);
+                    envValue.setTargetValue(targetValue);
                     break;
                 }
+
+                if (maxRamp.targetValue < targetValue) {
+                    maxRamp.targetValue = targetValue;
+                    maxRamp.duration = duration;
+                }
+
+                if (i == attacks.size() - 1) {
+
+                    envValue.setCurrentAndTargetValue(currentVal);
+                    envValue.reset(sampleRate, maxRamp.duration);
+                    envValue.setTargetValue(maxRamp.targetValue);
+                    break;
+                }
+
+                //if ((releases[i]->targetValue > prevTargetValue && releases[i]->targetValue > envValue.getCurrentValue()) || (releases[i]->targetValue < prevTargetValue && releases[i]->targetValue < envValue.getCurrentValue())) {
+                //    envValue.setCurrentAndTargetValue(envValue.getCurrentValue());
+                //    envValue.reset(sampleRate, releases[i]->duration);
+                //    envValue.setTargetValue(releases[i]->targetValue);
+                //    break;
+                //}
 
                 rampCount++;
                 prevTargetValue = releases[i]->targetValue;
@@ -131,7 +186,7 @@ public:
         
     }
 
-    void SetEnvDuration(float totalEnvDuration, double sampleRate) {
+    void SetEnvDuration(float totalEnvDuration) {
         rampDuration = totalEnvDuration / attacks.size();
         envValue.reset(sampleRate, rampDuration);
     }

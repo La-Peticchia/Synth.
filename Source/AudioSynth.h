@@ -36,12 +36,12 @@ class Voice : public juce::SynthesiserVoice {
 
         Voice() {
             //gainEnvGen.attacks.add(new Ramp(0.7f, 1.f));
-            gainEnvGen.attacks.add(new Ramp(SUSTAIN_VALUE, DEFAULT_RAMP_DURATION));
+            //gainEnvGen.attacks.add(new Ramp(SUSTAIN_VALUE, DEFAULT_RAMP_DURATION));
             //gainEnvGen.releases.add(new Ramp(0.3f, 1.f));
-            gainEnvGen.releases.add(new Ramp(0.f, DEFAULT_RAMP_DURATION));
+            //gainEnvGen.releases.add(new Ramp(0.f, DEFAULT_RAMP_DURATION));
+            //cutOffEnvGen.releases.add(new Ramp(0.f, DEFAULT_RAMP_DURATION));
 
-            cutOffEnvGen.attacks.add(new Ramp(SUSTAIN_VALUE, DEFAULT_RAMP_DURATION));
-            cutOffEnvGen.releases.add(new Ramp(0.f, DEFAULT_RAMP_DURATION));
+            //cutOffEnvGen.attacks.add(new Ramp(SUSTAIN_VALUE, DEFAULT_RAMP_DURATION));
 
             //cutOffEnvGen.attacks.add(new Ramp(3.f, 0.1f ));
             //cutOffEnvGen.attacks.add(new Ramp(0.3, 0.1f));
@@ -176,9 +176,8 @@ class Voice : public juce::SynthesiserVoice {
                 return;
             auto currentGen = (state == gainEnv) ? &gainEnvGen : &cutOffEnvGen;
             auto currentRamps = (type == attack) ? &currentGen->attacks : &currentGen->releases;
-            currentRamps->insert(currentRamps->size()-1, new Ramp(value, duration));
 
-            //currentRamps->add(new Ramp(value, DEFAULT_RAMP_DURATION));
+            currentRamps->add(new Ramp(value, DEFAULT_RAMP_DURATION));
         }
 
         void RemoveEnvelopeRamp(EnvType type, EnvState state) {
@@ -205,12 +204,11 @@ class Voice : public juce::SynthesiserVoice {
             auto currentGen = (type == gainEnv) ? &gainEnvGen : &cutOffEnvGen;
             auto currentRamps = (state == attack) ? &currentGen->attacks : &currentGen->releases;
             (*currentRamps)[index]->duration = value;
-
         }
 
         void SetEnvDuration(EnvType type, float value) {
             auto currentGen = (type == gainEnv) ? &gainEnvGen : &cutOffEnvGen;
-            currentGen->SetEnvDuration(value, GetSkippedSampleRate());
+            currentGen->SetEnvDuration(value);
         }
 
 
@@ -334,10 +332,17 @@ public:
             dynamic_cast<Voice*>(getVoice(i))->SetRampTargetValue(type, state, index, value);
     }
 
+    void SetRampDuration(EnvType type, EnvState state, int index, float value) {
+        for (int i = 0; i < getNumVoices(); i++)
+            dynamic_cast<Voice*>(getVoice(i))->SetRampDuration(type, state, index, value);
+    }
+
     void SetEnvelopeDuration(EnvType type, float value) {
         for (int i = 0; i < getNumVoices(); i++)
             dynamic_cast<Voice*>(getVoice(i))->SetEnvDuration(type, value);
     }
+
+
 
 #pragma endregion
 

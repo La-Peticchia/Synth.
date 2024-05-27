@@ -8,7 +8,6 @@
   ==============================================================================
 */
 
-#define HP_FILTER_ORDER 5
 
 #pragma once
 #include <JuceHeader.h>
@@ -81,7 +80,7 @@ public:
 
     HPFilter() {
 
-        filterCount = ceil(HP_FILTER_ORDER / 2);
+        filterCount = ceil(HIGH_PASS_FILTER_ORDER / 2);
         for (int i = 0; i < filterCount; i++)
             hpFilter.add(new IIRStereoFilter());
 
@@ -138,7 +137,7 @@ public:
 
         //coefficients.add(juce::dsp::FilterDesign<float>::designIIRHighpassHighOrderButterworthMethod(juce::MidiMessage::getMidiNoteInHertz(0) + 0.1f, sampleRate, HP_FILTER_ORDER));
         for (int i = 0; i < NOTES; i++)
-        coefficients.add(juce::dsp::FilterDesign<float>::designIIRHighpassHighOrderButterworthMethod(juce::MidiMessage::getMidiNoteInHertz(i), sampleRate, HP_FILTER_ORDER));
+        coefficients.add(juce::dsp::FilterDesign<float>::designIIRHighpassHighOrderButterworthMethod(juce::MidiMessage::getMidiNoteInHertz(i), sampleRate, HIGH_PASS_FILTER_ORDER));
     }
     
     juce::ReferenceCountedArray<struct juce::dsp::IIR::Coefficients<float>> GetCoefficient(int index)
@@ -147,9 +146,48 @@ public:
     }
 
 private:
-    
     juce::Array<juce::ReferenceCountedArray<struct juce::dsp::IIR::Coefficients<float>>> coefficients;
+    
 };
+
+
+class LPButtFilter {
+public:
+
+    LPButtFilter() {
+        filterCount = ceil(LOW_PASS_FILTER_ORDER / 2);
+        for (int i = 0; i < filterCount; i++) 
+            lpFilter.add(new IIRStereoFilter());
+    }
+
+    template <typename ProcessContext>
+    void process(const ProcessContext& context) noexcept
+    {
+        for (int i = 0; i < filterCount; i++)
+            lpFilter[i]->process(context);
+    }
+
+    void reset() {
+        for (int i = 0; i < filterCount; i++)
+            lpFilter[i]->reset();
+    }
+
+    void prepare(const juce::dsp::ProcessSpec& spec, float cutoffFreq)
+    {
+        auto coeffArray = juce::dsp::FilterDesign<float>::designIIRLowpassHighOrderButterworthMethod(cutoffFreq, spec.sampleRate, LOW_PASS_FILTER_ORDER);
+
+        for (int i = 0; i < filterCount; i++) {
+            lpFilter[i]->prepare(spec);
+            *lpFilter[i]->state = *coeffArray[i];
+        }
+    }
+private:
+    typedef juce::dsp::ProcessorDuplicator<juce::dsp::IIR::Filter<float>, juce::dsp::IIR::Coefficients<float>> IIRStereoFilter;
+    juce::OwnedArray<IIRStereoFilter> lpFilter;
+    int filterCount;
+};
+
+
 
 
 class FDNReverb {

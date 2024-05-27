@@ -77,13 +77,13 @@ GCB_SynthAudioProcessorEditor::GCB_SynthAudioProcessorEditor(GCB_SynthAudioProce
 		currentOscillatorSlider->onValueChange = [currentOscillatorSlider, this, i]() {
 			float sliderValue = currentOscillatorSlider->getValue();
 			if (i == 0 || i == 2) {
-				audioProcessor.audioSynth.SetRampTargetValue(EnvType::gainEnv, EnvState::attack, i, sliderValue);
+				audioProcessor.audioSynth.SetRampTargetValue(EnvType::gainEnv, EnvState::attack, (int)i / 2, sliderValue/1000);
 			}
 			else if (i == 1 || i == 3) {
-				audioProcessor.audioSynth.SetEnvelopeDuration(EnvType::gainEnv, sliderValue);
+				audioProcessor.audioSynth.SetRampDuration(EnvType::gainEnv, EnvState::attack, (int)(i - 1) / 2, sliderValue / 1000);
 			}
-			audioProcessor.audioSynth.AddEnvelopeRamp(EnvType::gainEnv, EnvState::attack, currentOscillatorSlider->getValue());
 			};
+		
 
 		auto filterSlider = std::make_unique<juce::Slider>();
 		filterSlider->setSliderStyle(juce::Slider::SliderStyle::LinearVertical);
@@ -102,13 +102,19 @@ GCB_SynthAudioProcessorEditor::GCB_SynthAudioProcessorEditor(GCB_SynthAudioProce
 		currentFilterSlider->onValueChange = [currentFilterSlider, this, i]() {
 			float sliderValue = currentFilterSlider->getValue();
 			if (i == 0 || i == 2) {
-				audioProcessor.audioSynth.SetRampTargetValue(EnvType::lpFilterEnv, EnvState::attack, i, sliderValue);
+				audioProcessor.audioSynth.SetRampTargetValue(EnvType::lpFilterEnv, EnvState::attack, (int)i/2, sliderValue/1000);
 			}
 			else if (i == 1 || i == 3) {
-				audioProcessor.audioSynth.SetEnvelopeDuration(EnvType::lpFilterEnv, sliderValue);
+				audioProcessor.audioSynth.SetRampDuration(EnvType::lpFilterEnv, EnvState::attack, (int)(i - 1) / 2, sliderValue / 1000);
 			}
-			audioProcessor.audioSynth.AddEnvelopeRamp(EnvType::lpFilterEnv, EnvState::attack, currentFilterSlider->getValue());
 			};
+
+		if (!(i % 2)) {
+			DBG(i);
+			audioProcessor.audioSynth.AddEnvelopeRamp(EnvType::gainEnv, EnvState::attack, currentOscillatorSlider->getValue());
+			audioProcessor.audioSynth.AddEnvelopeRamp(EnvType::lpFilterEnv, EnvState::attack, currentFilterSlider->getValue());
+		}
+	
 	}
 
 	// Crea release sliders e flanger sliders
@@ -134,17 +140,15 @@ GCB_SynthAudioProcessorEditor::GCB_SynthAudioProcessorEditor(GCB_SynthAudioProce
 			float sliderValue = currentOscillatorSlider->getValue();
 			if (i == 0)
 			{
-				audioProcessor.audioSynth.SetRampTargetValue(EnvType::gainEnv, EnvState::release, i, sliderValue);
+				audioProcessor.audioSynth.SetRampTargetValue(EnvType::gainEnv, EnvState::release, i, sliderValue/1000);
 			}
 
 			else if (i == 1 || i == 2) {
-				audioProcessor.audioSynth.SetEnvelopeDuration(EnvType::gainEnv, sliderValue);
+				audioProcessor.audioSynth.SetRampDuration(EnvType::gainEnv, EnvState::release, i-1, sliderValue / 1000);
 			}
 			
 			};
 
-
-		audioProcessor.audioSynth.AddEnvelopeRamp(EnvType::gainEnv, EnvState::release, currentOscillatorSlider->getValue());
 
 
 		auto filterSlider = std::make_unique<juce::Slider>();
@@ -167,16 +171,19 @@ GCB_SynthAudioProcessorEditor::GCB_SynthAudioProcessorEditor(GCB_SynthAudioProce
 		currentFilterSlider->onValueChange = [currentFilterSlider, this, i]() {
 			float sliderValue = currentFilterSlider->getValue();
 			if (i == 0) {
-				audioProcessor.audioSynth.SetRampTargetValue(EnvType::lpFilterEnv, EnvState::release, i, sliderValue);
+				audioProcessor.audioSynth.SetRampTargetValue(EnvType::lpFilterEnv, EnvState::release, i, sliderValue/1000);
 			}
 
 			else if (i == 1 || i == 2) {
-				audioProcessor.audioSynth.SetEnvelopeDuration(EnvType::lpFilterEnv, sliderValue);
+				audioProcessor.audioSynth.SetRampDuration(EnvType::lpFilterEnv, EnvState::release, i - 1, sliderValue / 1000);
 			}
 			};
 
 
-		audioProcessor.audioSynth.AddEnvelopeRamp(EnvType::lpFilterEnv, EnvState::release, currentFilterSlider->getValue());
+		if (!(i % 2)) {
+			audioProcessor.audioSynth.AddEnvelopeRamp(EnvType::gainEnv, EnvState::release, currentOscillatorSlider->getValue());
+			audioProcessor.audioSynth.AddEnvelopeRamp(EnvType::lpFilterEnv, EnvState::release, currentFilterSlider->getValue());
+		}
 
 
 		auto flangerSlider = std::make_unique<juce::Slider>();
@@ -187,15 +194,15 @@ GCB_SynthAudioProcessorEditor::GCB_SynthAudioProcessorEditor(GCB_SynthAudioProce
 
 		switch (i) {
 		case 0:
-			flangerSlider->setRange(0.005, 0.015, 0.001);
-			flangerSlider->setTextValueSuffix(" ms");
+			flangerSlider->setRange(0, 1, 0.001);
+			flangerSlider->setTextValueSuffix(" %");
 			break;
 		case 1:
-			flangerSlider->setRange(0.5, 1.0, 0.1);
+			flangerSlider->setRange(0, 1.0, 0.1);
 			flangerSlider->setTextValueSuffix(" dB");
 			break;
 		case 2:
-			flangerSlider->setRange(1.0, 5.0, 1.0);
+			flangerSlider->setRange(0.01, 1, 0.01);
 			flangerSlider->setTextValueSuffix(" Hz");
 			break;
 		}
@@ -211,14 +218,14 @@ GCB_SynthAudioProcessorEditor::GCB_SynthAudioProcessorEditor(GCB_SynthAudioProce
 			// Slider per il tempo di delay
 			currentFlangerSlider->onValueChange = [currentFlangerSlider, this]() {
 				float sliderValue = currentFlangerSlider->getValue();
-				audioProcessor.flanger.SetDelay(sliderValue);
+				audioProcessor.flanger.SetDepth(sliderValue);
 				};
 		}
 		else if (i == 1) {
 			// Slider per il gain
 			currentFlangerSlider->onValueChange = [currentFlangerSlider, this]() {
 				float sliderValue = currentFlangerSlider->getValue();
-				audioProcessor.flanger.SetGain(sliderValue);
+				audioProcessor.flanger.SetWet(sliderValue);
 				};
 		}
 		else if (i == 2) {
@@ -245,11 +252,11 @@ GCB_SynthAudioProcessorEditor::GCB_SynthAudioProcessorEditor(GCB_SynthAudioProce
 
 		switch (i) {
 		case 0:
-			delaySlider->setRange(0.05, 0.15, 0.01);
-			delaySlider->setTextValueSuffix(" ms");
+			delaySlider->setRange(0.1, 1, 0.01);
+			delaySlider->setTextValueSuffix(" s");
 			break;
 		case 1:
-			delaySlider->setRange(0.5, 0.9, 0.1);
+			delaySlider->setRange(0.1, 0.9, 0.01);
 			delaySlider->setTextValueSuffix(" dB");
 			break;
 		}
@@ -269,7 +276,7 @@ GCB_SynthAudioProcessorEditor::GCB_SynthAudioProcessorEditor(GCB_SynthAudioProce
 			// Slider per il gain
 			currentdelaySlider->onValueChange = [currentdelaySlider, this]() {
 				float sliderValue = currentdelaySlider->getValue();
-				audioProcessor.delay.SetGain(sliderValue);
+				audioProcessor.delay.SetFeedback(sliderValue);
 				};
 		}
 	}
@@ -297,31 +304,31 @@ GCB_SynthAudioProcessorEditor::GCB_SynthAudioProcessorEditor(GCB_SynthAudioProce
 	addAndMakeVisible(functionTypeLabel);
 	functionTypeLabel.setJustificationType(juce::Justification::centred);
 	functionTypeLabel.setFont(juce::Font(10.0f, juce::Font::italic));
-	functionTypeLabel.setText("None", juce::dontSendNotification);
+	functionTypeLabel.setText("Soft Clip", juce::dontSendNotification);
 
 	dialDistortion.onValueChange = [this]()
 		{
-			float dialValue = dialDistortion.getValue();
+			int dialValue = (int)dialDistortion.getValue();
+
 
 			if (dialValue == 0)
-			{
-				audioProcessor.audioSynth.SetDistortionFunction(FunctionType::none);
-				functionTypeLabel.setText("None", juce::dontSendNotification);
-			}
-			else if (dialValue == 1.0)
 			{
 				audioProcessor.audioSynth.SetDistortionFunction(FunctionType::softClip);
 				functionTypeLabel.setText("Soft Clip", juce::dontSendNotification);
 			}
-			else if (dialValue == 2.0)
+			else if (dialValue == 1)
 			{
 				audioProcessor.audioSynth.SetDistortionFunction(FunctionType::hardClip);
 				functionTypeLabel.setText("Hard Clip", juce::dontSendNotification);
 			}
-			else if (dialValue == 3)
+			else if (dialValue == 2)
 			{
 				audioProcessor.audioSynth.SetDistortionFunction(FunctionType::waveFold);
 				functionTypeLabel.setText("Wave Fold", juce::dontSendNotification);
+			} else if (dialValue == 3)
+			{
+				audioProcessor.audioSynth.SetDistortionFunction(FunctionType::absolute);
+				functionTypeLabel.setText("Absolute", juce::dontSendNotification);
 			}
 		};
 	addAndMakeVisible(label1);
@@ -334,7 +341,7 @@ GCB_SynthAudioProcessorEditor::GCB_SynthAudioProcessorEditor(GCB_SynthAudioProce
 	addAndMakeVisible(dialBias);
 	dialBias.setSliderStyle(juce::Slider::SliderStyle::Rotary);
 	dialBias.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 30, 15);
-	dialBias.setRange(-1.0, 1.0, 0.1);
+	dialBias.setRange(0, 1.0, 0.1);
 	dialBias.setColour(juce::Slider::ColourIds::rotarySliderFillColourId, juce::Colours::white);
 	dialBias.setColour(juce::Slider::ColourIds::textBoxOutlineColourId, juce::Colours::transparentWhite);
 	dialBias.onValueChange = [this]() {

@@ -10,7 +10,10 @@
 #include <JuceHeader.h>
 #include "AudioSynth.h"
 #include "CustomDelay.h"
+#include "CustomFilter.h"
 #include "CustomFlanger.h"
+#include "Enums.h"
+
 //==============================================================================
 /**
 */
@@ -58,9 +61,10 @@ public:
     juce::MidiKeyboardState keyboardState;
     AudioSynth audioSynth;
     CustomDelay delay ;
-    CustomFlanger flanger ;
-    juce::dsp::Limiter<float> limiter;
+    CustomFlanger flanger;
     
+    juce::dsp::Limiter<float> limiter;
+    LPButtFilter finalLPFilter;
 private:
     juce::MidiMessageCollector midiMessageCollector;
 

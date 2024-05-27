@@ -8,9 +8,8 @@
 
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
-#include "Enums.h"
 //==============================================================================
-GCB_SynthAudioProcessor::GCB_SynthAudioProcessor()://keyboardComp(keyboardState, juce::KeyboardComponentBase::horizontalKeyboard),
+GCB_SynthAudioProcessor::GCB_SynthAudioProcessor():
 #ifndef JucePlugin_PreferredChannelConfigurations
      AudioProcessor (BusesProperties()
                      #if ! JucePlugin_IsMidiEffect
@@ -23,8 +22,6 @@ GCB_SynthAudioProcessor::GCB_SynthAudioProcessor()://keyboardComp(keyboardState,
 #endif
 {
     keyboardState.addListener(&midiMessageCollector);
-
-
 
 }
 
@@ -101,14 +98,23 @@ void GCB_SynthAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBl
 {
     // Use this method as the place to do any pre-playback
     // initialisation that you need..
-
+    DBG(sampleRate);
     juce::dsp::ProcessSpec spec { sampleRate, (juce::uint32)samplesPerBlock, 2 };
     audioSynth.prepare(spec);
-    delay = CustomDelay(sampleRate, 0.05f, 0.9f);
-    flanger = CustomFlanger(sampleRate, 2.f, 0.13f, 0.3f);
+
+    delay = CustomDelay(sampleRate);
+    delay.prepare(spec);
+    
+    flanger = CustomFlanger(sampleRate);
+
+    finalLPFilter = LPButtFilter();
+    finalLPFilter.prepare(spec, FINAL_CUTOFF_FREQ);
+
+
     limiter.prepare(spec);
     limiter.setThreshold(0.f);
     limiter.setRelease(300.f);
+
 
     midiMessageCollector.reset(sampleRate);
 }
@@ -147,6 +153,7 @@ bool GCB_SynthAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts
 
 void GCB_SynthAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
 {
+
     juce::ScopedNoDenormals noDenormals;
     auto totalNumInputChannels  = getTotalNumInputChannels();
     auto totalNumOutputChannels = getTotalNumOutputChannels();
@@ -158,12 +165,18 @@ void GCB_SynthAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, ju
 
     audioSynth.renderNextBlock(buffer, midiMessages, 0, buffer.getNumSamples());
 
-    //delay.processBlock(buffer);
-    //flanger.processBlock(buffer);
+    delay.processBlock(buffer);
+    flanger.processBlock(buffer);
+    finalLPFilter.process(juce::dsp::ProcessContextReplacing<float>(juce::dsp::AudioBlock<float>(buffer)));
     
     //limiter.process(juce::dsp::ProcessContextReplacing<float>(juce::dsp::AudioBlock<float>(buffer)));
-    int numSamples = buffer.getNumSamples();
-    int startSample = 0;
+    
+    
+    
+    //int numSamples = buffer.getNumSamples();
+    //int startSample = 0;
+
+    
 
     //juce::dsp::
 
