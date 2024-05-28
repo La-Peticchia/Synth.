@@ -65,8 +65,22 @@ GCB_SynthAudioProcessorEditor::GCB_SynthAudioProcessorEditor(GCB_SynthAudioProce
 		oscillatorSlider->setSliderStyle(juce::Slider::SliderStyle::LinearVertical);
 		oscillatorSlider->setTextBoxStyle(juce::Slider::TextBoxBelow, false, 50, 10);
 		oscillatorSlider->setColour(juce::Slider::ColourIds::textBoxOutlineColourId, juce::Colours::transparentWhite);
-		oscillatorSlider->setRange(0, 1000, 1);
-		oscillatorSlider->setTextValueSuffix(" ms");
+		switch (i) {
+		case 0:
+			oscillatorSlider->setRange(1, 1000, 1);
+			break;
+		case 1:
+			oscillatorSlider->setRange(10, 1000, 1);
+			oscillatorSlider->setTextValueSuffix(" ms");
+			break;
+		case 2:
+			oscillatorSlider->setRange(1, 1000, 1);
+			break;
+		case 3:
+			oscillatorSlider->setRange(10, 1000, 1);
+			oscillatorSlider->setTextValueSuffix(" ms");
+			break;
+		}
 		addAndMakeVisible(*oscillatorSlider);
 		oscillatorSlider->setLookAndFeel(&otherLookAndFeel);
 
@@ -90,8 +104,22 @@ GCB_SynthAudioProcessorEditor::GCB_SynthAudioProcessorEditor(GCB_SynthAudioProce
 		filterSlider->setTextBoxStyle(juce::Slider::TextBoxBelow, false, 50, 10);
 		filterSlider->setColour(juce::Slider::ColourIds::trackColourId, juce::Colours::whitesmoke);
 		filterSlider->setColour(juce::Slider::ColourIds::textBoxOutlineColourId, juce::Colours::transparentWhite);
-		filterSlider->setRange(0, 1000, 1);
-		filterSlider->setTextValueSuffix(" ms");
+		switch (i) {
+		case 0:
+			filterSlider->setRange(1, 1000, 1);
+			break;
+		case 1:
+			filterSlider->setRange(10, 1000, 1);
+			filterSlider->setTextValueSuffix(" ms");
+			break;
+		case 2:
+			filterSlider->setRange(1, 1000, 1);
+			break;
+		case 3:
+			filterSlider->setRange(10, 1000, 1);
+			filterSlider->setTextValueSuffix(" ms");
+			break;
+		}
 		addAndMakeVisible(*filterSlider);
 		filterSlider->setLookAndFeel(&otherLookAndFeel);
 
@@ -117,16 +145,27 @@ GCB_SynthAudioProcessorEditor::GCB_SynthAudioProcessorEditor(GCB_SynthAudioProce
 	
 	}
 
-	// Crea release sliders e flanger sliders
-	for (int i = 0; i < numRelFlaSliders; ++i) {
+	// Crea release sliders
+	for (int i = 0; i < numReleaseSliders; ++i) {
 
 		auto oscillatorSlider = std::make_unique<juce::Slider>();
 		oscillatorSlider->setSliderStyle(juce::Slider::SliderStyle::LinearVertical);
 		oscillatorSlider->setTextBoxStyle(juce::Slider::TextBoxBelow, false, 50, 10);
 		oscillatorSlider->setColour(juce::Slider::ColourIds::trackColourId, juce::Colours::whitesmoke);
 		oscillatorSlider->setColour(juce::Slider::ColourIds::textBoxOutlineColourId, juce::Colours::transparentWhite);
-		oscillatorSlider->setRange(0, 1000, 1);
-		oscillatorSlider->setTextValueSuffix(" ms");
+		switch (i) {
+		case 0:
+			oscillatorSlider->setRange(1, 1000, 1);
+			break;
+		case 1:
+			oscillatorSlider->setRange(10, 1000, 1);
+			oscillatorSlider->setTextValueSuffix(" ms");
+			break;
+		case 2:
+			oscillatorSlider->setRange(10, 1000, 1);
+			oscillatorSlider->setTextValueSuffix(" ms");
+			break;
+		}
 		addAndMakeVisible(*oscillatorSlider);
 		oscillatorSlider->setLookAndFeel(&otherLookAndFeel);
 
@@ -150,14 +189,24 @@ GCB_SynthAudioProcessorEditor::GCB_SynthAudioProcessorEditor(GCB_SynthAudioProce
 			};
 
 
-
 		auto filterSlider = std::make_unique<juce::Slider>();
 		filterSlider->setSliderStyle(juce::Slider::SliderStyle::LinearVertical);
 		filterSlider->setTextBoxStyle(juce::Slider::TextBoxBelow, false, 50, 10);
 		filterSlider->setColour(juce::Slider::ColourIds::trackColourId, juce::Colours::whitesmoke);
 		filterSlider->setColour(juce::Slider::ColourIds::textBoxOutlineColourId, juce::Colours::transparentWhite);
-		filterSlider->setRange(0, 1000, 1);
-		filterSlider->setTextValueSuffix(" ms");
+		switch (i) {
+		case 0:
+			filterSlider->setRange(1, 1000, 1);
+			break;
+		case 1:
+			filterSlider->setRange(10, 1000, 1);
+			filterSlider->setTextValueSuffix(" ms");
+			break;
+		case 2:
+			filterSlider->setRange(10, 1000, 1);
+			filterSlider->setTextValueSuffix(" ms");
+			break;
+		}
 		addAndMakeVisible(*filterSlider);
 		filterSlider->setLookAndFeel(&otherLookAndFeel);
 
@@ -185,10 +234,23 @@ GCB_SynthAudioProcessorEditor::GCB_SynthAudioProcessorEditor(GCB_SynthAudioProce
 			audioProcessor.audioSynth.AddEnvelopeRamp(EnvType::lpFilterEnv, EnvState::release, currentFilterSlider->getValue());
 		}
 
+	}
+
+	// Crea flanger sliders
+	for (int i = 0; i < numFlangerSliders; ++i) {
 
 		auto flangerSlider = std::make_unique<juce::Slider>();
-		flangerSlider->setSliderStyle(juce::Slider::SliderStyle::LinearVertical);
-		flangerSlider->setTextBoxStyle(juce::Slider::TextBoxBelow, false, 51, 10);
+		if (i == 0)
+		{
+			flangerSlider->setSliderStyle(juce::Slider::SliderStyle::LinearHorizontal);
+			flangerSlider->setTextBoxStyle(juce::Slider::TextBoxLeft, false, 51, 10);
+		}
+		else
+		{
+			flangerSlider->setSliderStyle(juce::Slider::SliderStyle::LinearVertical);
+			flangerSlider->setTextBoxStyle(juce::Slider::TextBoxBelow, false, 51, 10);
+		}
+		
 		flangerSlider->setColour(juce::Slider::ColourIds::trackColourId, juce::Colours::whitesmoke);
 		flangerSlider->setColour(juce::Slider::ColourIds::textBoxOutlineColourId, juce::Colours::transparentWhite);
 
@@ -199,13 +261,18 @@ GCB_SynthAudioProcessorEditor::GCB_SynthAudioProcessorEditor(GCB_SynthAudioProce
 			break;
 		case 1:
 			flangerSlider->setRange(0, 1.0, 0.1);
-			flangerSlider->setTextValueSuffix(" dB");
+			flangerSlider->setTextValueSuffix(" %");
 			break;
 		case 2:
 			flangerSlider->setRange(0.01, 1, 0.01);
 			flangerSlider->setTextValueSuffix(" Hz");
 			break;
+		case 3:
+			flangerSlider->setRange(0, 1.0, 0.1);
+			flangerSlider->setTextValueSuffix(" %");
+			break;
 		}
+
 		addAndMakeVisible(*flangerSlider);
 		flangerSlider->setLookAndFeel(&otherLookAndFeel);
 
@@ -215,35 +282,40 @@ GCB_SynthAudioProcessorEditor::GCB_SynthAudioProcessorEditor(GCB_SynthAudioProce
 		auto* currentFlangerSlider = flangerSliders.back().get();
 
 		if (i == 0) {
-			// Slider per il tempo di delay
+			
 			currentFlangerSlider->onValueChange = [currentFlangerSlider, this]() {
 				float sliderValue = currentFlangerSlider->getValue();
 				audioProcessor.flanger.SetDepth(sliderValue);
 				};
 		}
 		else if (i == 1) {
-			// Slider per il gain
+			
 			currentFlangerSlider->onValueChange = [currentFlangerSlider, this]() {
 				float sliderValue = currentFlangerSlider->getValue();
 				audioProcessor.flanger.SetWet(sliderValue);
 				};
 		}
 		else if (i == 2) {
-			// Slider per la frequency
+			
 			currentFlangerSlider->onValueChange = [currentFlangerSlider, this]() {
 				float sliderValue = currentFlangerSlider->getValue();
 				audioProcessor.flanger.SetFrequency(sliderValue);
 				};
 		}
-
+		else if (i == 3) {
+			
+			currentFlangerSlider->onValueChange = [currentFlangerSlider, this]() {
+				float sliderValue = currentFlangerSlider->getValue();
+				audioProcessor.flanger.SetDry(sliderValue);
+				};
+		}
 	}
 
 	//delay sliders
 	for (int i = 0; i < numDelaySliders; ++i) {
 
-
 		auto delaySlider = std::make_unique<juce::Slider>();
-		delaySlider->setSliderStyle(juce::Slider::SliderStyle::LinearVertical);
+		delaySlider->setSliderStyle(i == 0 ? juce::Slider::SliderStyle::Rotary : juce::Slider::SliderStyle::LinearVertical);
 		delaySlider->setTextBoxStyle(juce::Slider::TextBoxBelow, false, 50, 10);
 		delaySlider->setColour(juce::Slider::ColourIds::trackColourId, juce::Colours::whitesmoke);
 		delaySlider->setColour(juce::Slider::ColourIds::textBoxOutlineColourId, juce::Colours::transparentWhite);
@@ -252,12 +324,20 @@ GCB_SynthAudioProcessorEditor::GCB_SynthAudioProcessorEditor(GCB_SynthAudioProce
 
 		switch (i) {
 		case 0:
+			delaySlider->setRange(0.1, 0.9, 0.01);
+			delaySlider->setColour(juce::Slider::ColourIds::textBoxTextColourId, juce::Colours::transparentWhite);
+			break;
+		case 1:
 			delaySlider->setRange(0.1, 1, 0.01);
 			delaySlider->setTextValueSuffix(" s");
 			break;
-		case 1:
-			delaySlider->setRange(0.1, 0.9, 0.01);
-			delaySlider->setTextValueSuffix(" dB");
+		case 2:
+			delaySlider->setRange(0.1, 1, 0.01);
+			delaySlider->setTextValueSuffix(" %");
+			break;
+		case 3:
+			delaySlider->setRange(0.1, 1, 0.01);
+			delaySlider->setTextValueSuffix(" %");
 			break;
 		}
 
@@ -266,17 +346,33 @@ GCB_SynthAudioProcessorEditor::GCB_SynthAudioProcessorEditor(GCB_SynthAudioProce
 		auto* currentdelaySlider = delaySliders.back().get();
 
 		if (i == 0) {
-			// Slider per il tempo di delay
+			// Slider per il gain
+			currentdelaySlider->onValueChange = [currentdelaySlider, this]() {
+				float sliderValue = currentdelaySlider->getValue();
+				audioProcessor.delay.SetFeedback(sliderValue);
+				};
+		}
+		else if (i == 1) {
+			// slider per il delay
 			currentdelaySlider->onValueChange = [currentdelaySlider, this]() {
 				float sliderValue = currentdelaySlider->getValue();
 				audioProcessor.delay.SetDelay(sliderValue);
 				};
 		}
-		else if (i == 1) {
-			// Slider per il gain
+		else if (i == 2)
+		{
+			//slider dry
 			currentdelaySlider->onValueChange = [currentdelaySlider, this]() {
 				float sliderValue = currentdelaySlider->getValue();
-				audioProcessor.delay.SetFeedback(sliderValue);
+				audioProcessor.delay.SetDry(sliderValue);
+				};
+		}
+		else if (i == 3)
+		{
+			//slider wet
+			currentdelaySlider->onValueChange = [currentdelaySlider, this]() {
+				float sliderValue = currentdelaySlider->getValue();
+				audioProcessor.delay.SetWet(sliderValue);
 				};
 		}
 	}
@@ -310,7 +406,6 @@ GCB_SynthAudioProcessorEditor::GCB_SynthAudioProcessorEditor(GCB_SynthAudioProce
 		{
 			int dialValue = (int)dialDistortion.getValue();
 
-
 			if (dialValue == 0)
 			{
 				audioProcessor.audioSynth.SetDistortionFunction(FunctionType::softClip);
@@ -331,10 +426,10 @@ GCB_SynthAudioProcessorEditor::GCB_SynthAudioProcessorEditor(GCB_SynthAudioProce
 				functionTypeLabel.setText("Absolute", juce::dontSendNotification);
 			}
 		};
-	addAndMakeVisible(label1);
-	label1.setText("Distortion", juce::dontSendNotification);
-	label1.attachToComponent(&dialDistortion, false);
-	label1.setFont(juce::Font(12.0f, juce::Font::bold));
+	addAndMakeVisible(distortionLabel);
+	distortionLabel.setText("Distortion", juce::dontSendNotification);
+	distortionLabel.attachToComponent(&dialDistortion, false);
+	distortionLabel.setFont(juce::Font(12.0f, juce::Font::bold));
 
 
 	//slider per il bias
@@ -349,17 +444,17 @@ GCB_SynthAudioProcessorEditor::GCB_SynthAudioProcessorEditor(GCB_SynthAudioProce
 		audioProcessor.audioSynth.SetDistortionBias(biasValue);
 		};
 
-	addAndMakeVisible(label2);
-	label2.setText("Bias", juce::dontSendNotification);
-	label2.attachToComponent(&dialBias, false);
-	label2.setFont(juce::Font(12.0f, juce::Font::bold));
+	addAndMakeVisible(biasLabel);
+	biasLabel.setText("Bias", juce::dontSendNotification);
+	biasLabel.attachToComponent(&dialBias, false);
+	biasLabel.setFont(juce::Font(12.0f, juce::Font::bold));
 
 
 	//slider per il gain
 	addAndMakeVisible(dialGain);
 	dialGain.setSliderStyle(juce::Slider::SliderStyle::Rotary);
 	dialGain.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 30, 15);
-	dialGain.setRange(2.0, 5.0, 1.0);
+	dialGain.setRange(2.0, 5.0, 0.1);
 	dialGain.setColour(juce::Slider::ColourIds::rotarySliderFillColourId, juce::Colours::white);
 	dialGain.setColour(juce::Slider::ColourIds::textBoxOutlineColourId, juce::Colours::transparentWhite);
 	dialGain.setColour(juce::Slider::ColourIds::textBoxTextColourId , juce::Colours::transparentWhite);
@@ -368,10 +463,10 @@ GCB_SynthAudioProcessorEditor::GCB_SynthAudioProcessorEditor(GCB_SynthAudioProce
 		audioProcessor.audioSynth.SetDistortionGain(gainValue);
 		};
 
-	addAndMakeVisible(label3);
-	label3.setText("Gain", juce::dontSendNotification);
-	label3.attachToComponent(&dialGain, false);
-	label3.setFont(juce::Font(12.0f, juce::Font::bold));
+	addAndMakeVisible(gainLabel);
+	gainLabel.setText("Gain", juce::dontSendNotification);
+	gainLabel.attachToComponent(&dialGain, false);
+	gainLabel.setFont(juce::Font(12.0f, juce::Font::bold));
 
 	addAndMakeVisible(border1);
 	border1.setText("Waveshaper");
@@ -454,8 +549,15 @@ GCB_SynthAudioProcessorEditor::~GCB_SynthAudioProcessorEditor()
 void GCB_SynthAudioProcessorEditor::paint(juce::Graphics& g)
 {
 	// (Our component is opaque, so we must completely fill the background with a solid colour)
+	// Disegna il gradiente di base scuro
+	juce::ColourGradient gradient(juce::Colour(20, 20, 20), 0, 0, juce::Colour(40, 40, 40), getWidth(), getHeight(), false);
+	g.setGradientFill(gradient);
+	g.fillRect(0, 0, getWidth(), getHeight());
 
-	g.fillAll(juce::Colours::transparentBlack);
+	// riflesso metallico
+	juce::ColourGradient reflectionGradient(juce::Colours::grey.withAlpha(0.1f), 0, 0, juce::Colours::white.withAlpha(0.0f), getWidth(), getHeight() * 0.3f, false);
+	g.setGradientFill(reflectionGradient);
+	g.fillRect(0, 60, getWidth(), static_cast<int>(getHeight() * 0.6f));
 
 }
 
@@ -489,16 +591,13 @@ void GCB_SynthAudioProcessorEditor::resized()
 	dialFilter.setBounds(border2.getX() + (border2.getWidth() - dialSize) / 2, topMargin * 0.25, dialSize, dialSize);
 
 	// Imposta la posizione delle etichette
-	label1.setBounds(dialDistortion.getX(), dialDistortion.getY() - 15, label1.getWidth(), 25);
-	label2.setBounds(dialBias.getX(), dialBias.getY() - 15, label2.getWidth(), 25);
-	label3.setBounds(dialGain.getX(), dialGain.getY() - 15, label3.getWidth(), 25);
+	distortionLabel.setBounds(dialDistortion.getX(), dialDistortion.getY() - 15, distortionLabel.getWidth(), 25);
+	biasLabel.setBounds(dialBias.getX(), dialBias.getY() - 15, biasLabel.getWidth(), 25);
+	gainLabel.setBounds(dialGain.getX(), dialGain.getY() - 15, gainLabel.getWidth(), 25);
 	waveTypeLabel.setBounds(dialOscillator.getX(), dialOscillator.getY() + dialOscillator.getHeight() - 30, dialOscillator.getWidth(), 25);
 	functionTypeLabel.setBounds(dialDistortion.getX(), dialDistortion.getY() + dialDistortion.getHeight() - 30, dialDistortion.getWidth(), 25);
 
 	auto attackSliderWidth = border.getWidth() / numAttackSliders;
-	auto releaseSliderWidth = border.getWidth() / numRelFlaSliders;
-	auto flangerSliderWidth = border4.getWidth() / numRelFlaSliders;
-	auto delaySliderWidth = border3.getWidth() / numDelaySliders;
 	auto sliderHeight = border.getHeight() * 0.5;
 
 	// Posizionamento degli slider di attacco
@@ -527,12 +626,13 @@ void GCB_SynthAudioProcessorEditor::resized()
 		filterLabel->setBounds(sliderattackFil->getX(), sliderattackFil->getY() - 15, sliderattackFil->getWidth(), 20);
 	}
 
+	auto releaseSliderWidth = border.getWidth() / numReleaseSliders;
+	
 	// Posizionamento degli slider di rilascio
-	for (int i = 0; i < numRelFlaSliders; ++i) {
+	for (int i = 0; i < numReleaseSliders; ++i) {
 		auto sliderReleaseOsc = releaseOscillatorSliders[i].get();
 		auto sliderReleaseFil = releaseFilterSliders[i].get();
-		auto sliderFlanger = flangerSliders[i].get();
-
+		
 		auto* oscillatorLabel = new juce::Label();
 		oscillatorLabel->setText((i == 0) ? "Value" : "Duration", juce::dontSendNotification);
 		oscillatorLabel->setJustificationType(juce::Justification::centred);
@@ -541,7 +641,6 @@ void GCB_SynthAudioProcessorEditor::resized()
 
 		auto* filterLabel = new juce::Label();
 		filterLabel->setText((i == 0) ? "Value" : "Duration", juce::dontSendNotification);
-		auto* label = new juce::Label();
 		filterLabel->setJustificationType(juce::Justification::centred);
 		addAndMakeVisible(filterLabel);
 		filterLabel->setFont(10);
@@ -554,20 +653,83 @@ void GCB_SynthAudioProcessorEditor::resized()
 		filterReleaseBorder.setBounds(border2.getX() + 15, sliderReleaseFil->getY() - 30, releaseSliderWidth * 3 - 30, sliderHeight - 65);
 		filterLabel->setBounds(sliderReleaseFil->getX(), sliderReleaseFil->getY() - 15, sliderReleaseFil->getWidth(), 20);
 
-		sliderFlanger->setBounds(border4.getX() + i * flangerSliderWidth, border4.getY() + border4.getHeight() / 3, flangerSliderWidth, sliderHeight - 110);
 	}
+
+	auto flangerSliderWidth = border4.getWidth() / numFlangerSliders;
+
+	for (int i = 0; i < numFlangerSliders; ++i) {
+		auto sliderFlanger = flangerSliders[i].get();
+		auto* flangerLabel = new juce::Label();
+		if (i == 0) {
+			flangerLabel->setText("Depth", juce::dontSendNotification);
+		}
+		else if (i == 1) {
+			flangerLabel->setText("Wet", juce::dontSendNotification);
+		}
+		else if (i == 2) {
+			flangerLabel->setText("Freq.", juce::dontSendNotification);
+		}
+		else if (i == 3) {
+			flangerLabel->setText("Dry", juce::dontSendNotification);
+		}
+		flangerLabel->setJustificationType(juce::Justification::centred);
+		addAndMakeVisible(flangerLabel);
+		flangerLabel->setFont(10);
+
+		if (i == 0) {
+			flangerLabel->setBounds(border4.getX(), border4.getY() + border4.getHeight() / 4, border4.getWidth(), 20);
+			sliderFlanger->setBounds(border4.getX() + 20, border4.getY() + border4.getHeight() / 4.5, border4.getWidth() - 30, sliderHeight - 120);
+		}
+		else {
+			int verticalPositionY = border4.getY() + sliderHeight - 90;
+			int verticalSpacing = (border4.getWidth() - 3 * flangerSliderWidth) / 4;
+			flangerLabel->setBounds(border4.getX() + verticalSpacing + (i - 1) * (flangerSliderWidth + verticalSpacing), verticalPositionY - 10, flangerSliderWidth, 20);
+			sliderFlanger->setBounds(border4.getX() + verticalSpacing + (i - 1) * (flangerSliderWidth + verticalSpacing), verticalPositionY + 5, flangerSliderWidth, sliderHeight - 130);
+		}
+
+	}
+
+	auto delaySliderWidth = border3.getWidth() / numDelaySliders;
 
 	// Posizionamento degli slider di delay
 	for (int i = 0; i < numDelaySliders; ++i) {
 		auto sliderDelay = delaySliders[i].get();
-		sliderDelay->setBounds(border3.getX() + i * delaySliderWidth, border3.getY() + border3.getHeight() / 3, delaySliderWidth, sliderHeight - 110);
+
+		auto* delayLabel = new juce::Label();
+		if (i == 0) {
+			//delayLabel->setText("Gain", juce::dontSendNotification);
+		}
+		else if (i == 1) {
+			delayLabel->setText("Delay", juce::dontSendNotification);
+		}
+		else if (i == 2){
+			delayLabel->setText("Dry", juce::dontSendNotification);
+		}
+		else if (i == 3) {
+			delayLabel->setText("Wet", juce::dontSendNotification);
+		}	
+		delayLabel->setJustificationType(juce::Justification::centred);
+		addAndMakeVisible(delayLabel);
+		delayLabel->setFont(10);
+		
+
+		if (i == 0) {
+			//delayLabel->setBounds(border3.getX(), border3.getY() + border3.getHeight() / 5.5, border3.getWidth(), 20);
+			sliderDelay->setBounds(border3.getX(), border3.getY() + border3.getHeight() / 4.5, border3.getWidth(), sliderHeight - 120);
+		}
+		else {
+			int verticalPositionY = border3.getY() + sliderHeight - 90;
+			int verticalSpacing = (border3.getWidth() - 3 * delaySliderWidth) / 4;
+			delayLabel->setBounds(border3.getX() + verticalSpacing + (i - 1) * (delaySliderWidth + verticalSpacing), verticalPositionY - 5, delaySliderWidth, 20);
+			sliderDelay->setBounds(border3.getX() + verticalSpacing + (i - 1) * (delaySliderWidth + verticalSpacing), verticalPositionY + 5, delaySliderWidth, sliderHeight - 130);
+		}
 	}
 
 	// Imposta dimensioni e posizione dei togglebutton 
-	distortionToggle.setBounds(border1.getX() + dialSpacing, topMargin - 155, 70, dialSize);
-	filterToggle.setBounds(border2.getX() + dialSpacing, topMargin - 155, 70, dialSize);
-	delayToggle.setBounds(border3.getX() + dialSpacing, topMargin - 155, 70, dialSize);
-	flangerToggle.setBounds(border4.getX() + dialSpacing, border4.getY() - flangerSliderWidth / 3, 70, dialSize);
+	distortionToggle.setBounds(border1.getX() + dialSpacing, topMargin - 155, 60, dialSize);
+	filterToggle.setBounds(border2.getX() + dialSpacing, topMargin - 155, 60, dialSize);
+	delayToggle.setBounds(border3.getX() + dialSpacing, topMargin - 155, 60, dialSize);
+	flangerToggle.setBounds(border4.getX() + dialSpacing, border4.getY() - flangerSliderWidth / 3, 60, dialSize);
 }
 
 
