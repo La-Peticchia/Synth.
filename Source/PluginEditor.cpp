@@ -471,7 +471,7 @@ GCB_SynthAudioProcessorEditor::GCB_SynthAudioProcessorEditor(GCB_SynthAudioProce
 	addAndMakeVisible(dialGain);
 	dialGain.setSliderStyle(juce::Slider::SliderStyle::Rotary);
 	dialGain.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 30, 15);
-	dialGain.setRange(2.0, 5.0, 0.1);
+	dialGain.setRange(1.1, 5.0, 0.1);
 	dialGain.setColour(juce::Slider::ColourIds::rotarySliderFillColourId, juce::Colours::white);
 	dialGain.setColour(juce::Slider::ColourIds::textBoxOutlineColourId, juce::Colours::transparentWhite);
 	dialGain.setColour(juce::Slider::ColourIds::textBoxTextColourId , juce::Colours::transparentWhite);
