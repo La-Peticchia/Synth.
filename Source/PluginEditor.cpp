@@ -67,17 +67,21 @@ GCB_SynthAudioProcessorEditor::GCB_SynthAudioProcessorEditor(GCB_SynthAudioProce
 		oscillatorSlider->setColour(juce::Slider::ColourIds::textBoxOutlineColourId, juce::Colours::transparentWhite);
 		switch (i) {
 		case 0:
-			oscillatorSlider->setRange(1, 1000, 1);
+			oscillatorSlider->setRange(0.1, 1, 0.1);
+			oscillatorSlider->setValue(0.1);
+			//oscillatorSlider->onValueChange();
 			break;
 		case 1:
-			oscillatorSlider->setRange(10, 1000, 1);
+			oscillatorSlider->setRange(DEFAULT_RAMP_DURATION * 1000, 1000, 1);
 			oscillatorSlider->setTextValueSuffix(" ms");
 			break;
 		case 2:
-			oscillatorSlider->setRange(1, 1000, 1);
+			oscillatorSlider->setRange(0.1, 1, 0.1);
+			oscillatorSlider->setValue(1);
+			//oscillatorSlider->onValueChange();;
 			break;
 		case 3:
-			oscillatorSlider->setRange(10, 1000, 1);
+			oscillatorSlider->setRange(DEFAULT_RAMP_DURATION * 1000, 1000, 1);
 			oscillatorSlider->setTextValueSuffix(" ms");
 			break;
 		}
@@ -91,7 +95,7 @@ GCB_SynthAudioProcessorEditor::GCB_SynthAudioProcessorEditor(GCB_SynthAudioProce
 		currentOscillatorSlider->onValueChange = [currentOscillatorSlider, this, i]() {
 			float sliderValue = currentOscillatorSlider->getValue();
 			if (i == 0 || i == 2) {
-				audioProcessor.audioSynth.SetRampTargetValue(EnvType::gainEnv, EnvState::attack, (int)i / 2, sliderValue/1000);
+				audioProcessor.audioSynth.SetRampTargetValue(EnvType::gainEnv, EnvState::attack, (int)i / 2, sliderValue);
 			}
 			else if (i == 1 || i == 3) {
 				audioProcessor.audioSynth.SetRampDuration(EnvType::gainEnv, EnvState::attack, (int)(i - 1) / 2, sliderValue / 1000);
@@ -106,17 +110,21 @@ GCB_SynthAudioProcessorEditor::GCB_SynthAudioProcessorEditor(GCB_SynthAudioProce
 		filterSlider->setColour(juce::Slider::ColourIds::textBoxOutlineColourId, juce::Colours::transparentWhite);
 		switch (i) {
 		case 0:
-			filterSlider->setRange(1, 1000, 1);
+			filterSlider->setRange(0.1, 1, 0.1);
+			filterSlider->setValue(0.1);
+			//filterSlider->onValueChange();
 			break;
 		case 1:
-			filterSlider->setRange(10, 1000, 1);
+			filterSlider->setRange(DEFAULT_RAMP_DURATION * 1000, 1000, 1);
 			filterSlider->setTextValueSuffix(" ms");
 			break;
 		case 2:
-			filterSlider->setRange(1, 1000, 1);
+			filterSlider->setRange(0.1, 1, 0.1);
+			filterSlider->setValue(1);
+			//filterSlider->onValueChange();
 			break;
 		case 3:
-			filterSlider->setRange(10, 1000, 1);
+			filterSlider->setRange(DEFAULT_RAMP_DURATION * 1000, 1000, 1);
 			filterSlider->setTextValueSuffix(" ms");
 			break;
 		}
@@ -130,7 +138,7 @@ GCB_SynthAudioProcessorEditor::GCB_SynthAudioProcessorEditor(GCB_SynthAudioProce
 		currentFilterSlider->onValueChange = [currentFilterSlider, this, i]() {
 			float sliderValue = currentFilterSlider->getValue();
 			if (i == 0 || i == 2) {
-				audioProcessor.audioSynth.SetRampTargetValue(EnvType::lpFilterEnv, EnvState::attack, (int)i/2, sliderValue/1000);
+				audioProcessor.audioSynth.SetRampTargetValue(EnvType::lpFilterEnv, EnvState::attack, (int)i/2, sliderValue);
 			}
 			else if (i == 1 || i == 3) {
 				audioProcessor.audioSynth.SetRampDuration(EnvType::lpFilterEnv, EnvState::attack, (int)(i - 1) / 2, sliderValue / 1000);
@@ -138,7 +146,6 @@ GCB_SynthAudioProcessorEditor::GCB_SynthAudioProcessorEditor(GCB_SynthAudioProce
 			};
 
 		if (!(i % 2)) {
-			DBG(i);
 			audioProcessor.audioSynth.AddEnvelopeRamp(EnvType::gainEnv, EnvState::attack, currentOscillatorSlider->getValue());
 			audioProcessor.audioSynth.AddEnvelopeRamp(EnvType::lpFilterEnv, EnvState::attack, currentFilterSlider->getValue());
 		}
@@ -155,14 +162,16 @@ GCB_SynthAudioProcessorEditor::GCB_SynthAudioProcessorEditor(GCB_SynthAudioProce
 		oscillatorSlider->setColour(juce::Slider::ColourIds::textBoxOutlineColourId, juce::Colours::transparentWhite);
 		switch (i) {
 		case 0:
-			oscillatorSlider->setRange(1, 1000, 1);
+			oscillatorSlider->setRange(0.1, 1, 0.1);
+			oscillatorSlider->setValue(0.1);
+
 			break;
 		case 1:
-			oscillatorSlider->setRange(10, 1000, 1);
+			oscillatorSlider->setRange(DEFAULT_RAMP_DURATION * 1000, 1000, 1);
 			oscillatorSlider->setTextValueSuffix(" ms");
 			break;
 		case 2:
-			oscillatorSlider->setRange(10, 1000, 1);
+			oscillatorSlider->setRange(DEFAULT_RAMP_DURATION * 1000, 1000, 1);
 			oscillatorSlider->setTextValueSuffix(" ms");
 			break;
 		}
@@ -179,9 +188,8 @@ GCB_SynthAudioProcessorEditor::GCB_SynthAudioProcessorEditor(GCB_SynthAudioProce
 			float sliderValue = currentOscillatorSlider->getValue();
 			if (i == 0)
 			{
-				audioProcessor.audioSynth.SetRampTargetValue(EnvType::gainEnv, EnvState::release, i, sliderValue/1000);
+				audioProcessor.audioSynth.SetRampTargetValue(EnvType::gainEnv, EnvState::release, i, sliderValue);
 			}
-
 			else if (i == 1 || i == 2) {
 				audioProcessor.audioSynth.SetRampDuration(EnvType::gainEnv, EnvState::release, i-1, sliderValue / 1000);
 			}
@@ -196,14 +204,17 @@ GCB_SynthAudioProcessorEditor::GCB_SynthAudioProcessorEditor(GCB_SynthAudioProce
 		filterSlider->setColour(juce::Slider::ColourIds::textBoxOutlineColourId, juce::Colours::transparentWhite);
 		switch (i) {
 		case 0:
-			filterSlider->setRange(1, 1000, 1);
+			filterSlider->setRange(0.1, 1, 0.1);
+			filterSlider->setValue(0.1);
+
 			break;
 		case 1:
-			filterSlider->setRange(10, 1000, 1);
+			filterSlider->setRange(DEFAULT_RAMP_DURATION * 1000, 1000, 1);
+			DBG(filterSlider->getValue());
 			filterSlider->setTextValueSuffix(" ms");
 			break;
 		case 2:
-			filterSlider->setRange(10, 1000, 1);
+			filterSlider->setRange(DEFAULT_RAMP_DURATION * 1000, 1000, 1);
 			filterSlider->setTextValueSuffix(" ms");
 			break;
 		}
@@ -220,21 +231,27 @@ GCB_SynthAudioProcessorEditor::GCB_SynthAudioProcessorEditor(GCB_SynthAudioProce
 		currentFilterSlider->onValueChange = [currentFilterSlider, this, i]() {
 			float sliderValue = currentFilterSlider->getValue();
 			if (i == 0) {
-				audioProcessor.audioSynth.SetRampTargetValue(EnvType::lpFilterEnv, EnvState::release, i, sliderValue/1000);
+				audioProcessor.audioSynth.SetRampTargetValue(EnvType::lpFilterEnv, EnvState::release, i, sliderValue);
 			}
 
 			else if (i == 1 || i == 2) {
 				audioProcessor.audioSynth.SetRampDuration(EnvType::lpFilterEnv, EnvState::release, i - 1, sliderValue / 1000);
 			}
 			};
-
-
-		if (!(i % 2)) {
+		
+		if (!i) {
 			audioProcessor.audioSynth.AddEnvelopeRamp(EnvType::gainEnv, EnvState::release, currentOscillatorSlider->getValue());
 			audioProcessor.audioSynth.AddEnvelopeRamp(EnvType::lpFilterEnv, EnvState::release, currentFilterSlider->getValue());
 		}
 
 	}
+
+	audioProcessor.audioSynth.AddEnvelopeRamp(EnvType::gainEnv, EnvState::release, 0);
+	audioProcessor.audioSynth.AddEnvelopeRamp(EnvType::lpFilterEnv, EnvState::release, 0);
+
+	audioProcessor.audioSynth.SetRampTargetValue(EnvType::gainEnv, EnvState::release, 1, 0);
+	audioProcessor.audioSynth.SetRampTargetValue(EnvType::lpFilterEnv, EnvState::release, 1, 0);
+
 
 	// Crea flanger sliders
 	for (int i = 0; i < numFlangerSliders; ++i) {
@@ -443,7 +460,7 @@ GCB_SynthAudioProcessorEditor::GCB_SynthAudioProcessorEditor(GCB_SynthAudioProce
 		float biasValue = dialBias.getValue();
 		audioProcessor.audioSynth.SetDistortionBias(biasValue);
 		};
-
+	
 	addAndMakeVisible(biasLabel);
 	biasLabel.setText("Bias", juce::dontSendNotification);
 	biasLabel.attachToComponent(&dialBias, false);

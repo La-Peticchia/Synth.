@@ -20,7 +20,7 @@
 
 
 
-#define DEFAULT_RAMP_DURATION 0.5f
+#define DEFAULT_RAMP_DURATION 0.1f
 #define DEFAULT_SAMPLE_RATE 44100.
 #define DEFAULT_RESONANCE 1/std::sqrt(2)
 #define DEFAULT_GAIN  0.7f

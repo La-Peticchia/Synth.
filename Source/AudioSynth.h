@@ -171,13 +171,14 @@ class Voice : public juce::SynthesiserVoice {
         }
 
         void AddEnvelopeRamp(EnvType type, EnvState state, float value, float duration = DEFAULT_RAMP_DURATION) {
-            
             if (state != attack && state != release)
                 return;
             auto currentGen = (state == gainEnv) ? &gainEnvGen : &cutOffEnvGen;
             auto currentRamps = (type == attack) ? &currentGen->attacks : &currentGen->releases;
 
             currentRamps->add(new Ramp(value, DEFAULT_RAMP_DURATION));
+
+            DBG(" type" << type << " state" << state << " duration:" << duration << " targetValue:" << value);
         }
 
         void RemoveEnvelopeRamp(EnvType type, EnvState state) {
@@ -190,20 +191,26 @@ class Voice : public juce::SynthesiserVoice {
         }
 
         void SetRampTargetValue(EnvType type, EnvState state, int index, float value) {
+
             if (state != attack && state != release)
                 return;
             auto currentGen = (type == gainEnv) ? &gainEnvGen : &cutOffEnvGen;
             auto currentRamps = (state == attack) ? &currentGen->attacks : &currentGen->releases;
             (*currentRamps)[index]->targetValue = value;
 
+            DBG(" type" << type << " state" << state << " index" << index << " duration:" << (*currentRamps)[index]->duration << " targetValue:" << (*currentRamps)[index]->targetValue);
+
+
         }
 
         void SetRampDuration(EnvType type, EnvState state, int index, float value) {
+
             if (state != attack && state != release)
                 return;
             auto currentGen = (type == gainEnv) ? &gainEnvGen : &cutOffEnvGen;
             auto currentRamps = (state == attack) ? &currentGen->attacks : &currentGen->releases;
             (*currentRamps)[index]->duration = value;
+            DBG(" type" << type << " state" << state << " index" << index << " duration:" << value << " targetValue:" << (*currentRamps)[index]->targetValue);
         }
 
         void SetEnvDuration(EnvType type, float value) {
@@ -317,9 +324,9 @@ public:
 
 
 #pragma region Envelope interface
-    void AddEnvelopeRamp(EnvType type, EnvState state, float value) {
+    void AddEnvelopeRamp(EnvType type, EnvState state, float value, float duration = DEFAULT_RAMP_DURATION) {
         for (int i = 0; i < getNumVoices(); i++)
-            dynamic_cast<Voice*>(getVoice(i))->AddEnvelopeRamp(type, state, value);
+            dynamic_cast<Voice*>(getVoice(i))->AddEnvelopeRamp(type, state, value, duration);
     }
 
     void RemoveEnvelopeRamp(EnvType type, EnvState state) {
