@@ -41,17 +41,17 @@ GCB_SynthAudioProcessorEditor::GCB_SynthAudioProcessorEditor(GCB_SynthAudioProce
 			if (dialValue < 1.0)
 			{
 				audioProcessor.audioSynth.SetOscillatorWave(WaveType::sine);
-				waveTypeLabel.setText("Sine Wave", juce::dontSendNotification);
+				waveTypeLabel.setText("Sine", juce::dontSendNotification);
 			}
 			else if (dialValue >= 1.0 && dialValue < 2.0)
 			{
-				audioProcessor.audioSynth.SetOscillatorWave(WaveType::sawThooth);
-				waveTypeLabel.setText("Saw Thooth", juce::dontSendNotification);
+				audioProcessor.audioSynth.SetOscillatorWave(WaveType::triangular);
+				waveTypeLabel.setText("Triangular", juce::dontSendNotification);
 			}
 			else if (dialValue >= 2.0 && dialValue <= 3.0)
 			{
 				audioProcessor.audioSynth.SetOscillatorWave(WaveType::squareWave);
-				waveTypeLabel.setText("Square Wave", juce::dontSendNotification);
+				waveTypeLabel.setText("Square", juce::dontSendNotification);
 			}
 		};
 
@@ -277,7 +277,7 @@ GCB_SynthAudioProcessorEditor::GCB_SynthAudioProcessorEditor(GCB_SynthAudioProce
 			flangerSlider->setTextValueSuffix(" %");
 			break;
 		case 1:
-			flangerSlider->setRange(0, 1.0, 0.1);
+			flangerSlider->setRange(0, 100, 1);
 			flangerSlider->setTextValueSuffix(" %");
 			break;
 		case 2:
@@ -285,7 +285,7 @@ GCB_SynthAudioProcessorEditor::GCB_SynthAudioProcessorEditor(GCB_SynthAudioProce
 			flangerSlider->setTextValueSuffix(" Hz");
 			break;
 		case 3:
-			flangerSlider->setRange(0, 1.0, 0.1);
+			flangerSlider->setRange(0, 100, 1);
 			flangerSlider->setTextValueSuffix(" %");
 			break;
 		}
@@ -304,13 +304,17 @@ GCB_SynthAudioProcessorEditor::GCB_SynthAudioProcessorEditor(GCB_SynthAudioProce
 				float sliderValue = currentFlangerSlider->getValue();
 				audioProcessor.flanger.SetDepth(sliderValue);
 				};
+			currentFlangerSlider->setValue(DEFAULT_LFO_DEPTH);
+
 		}
 		else if (i == 1) {
 			
 			currentFlangerSlider->onValueChange = [currentFlangerSlider, this]() {
 				float sliderValue = currentFlangerSlider->getValue();
-				audioProcessor.flanger.SetWet(sliderValue);
+				audioProcessor.flanger.SetWet(sliderValue/100);
 				};
+			currentFlangerSlider->setValue(100);
+
 		}
 		else if (i == 2) {
 			
@@ -318,13 +322,17 @@ GCB_SynthAudioProcessorEditor::GCB_SynthAudioProcessorEditor(GCB_SynthAudioProce
 				float sliderValue = currentFlangerSlider->getValue();
 				audioProcessor.flanger.SetFrequency(sliderValue);
 				};
+			currentFlangerSlider->setValue(DEFAULT_LFO_FREQUENCY);
+
 		}
 		else if (i == 3) {
 			
 			currentFlangerSlider->onValueChange = [currentFlangerSlider, this]() {
 				float sliderValue = currentFlangerSlider->getValue();
-				audioProcessor.flanger.SetDry(sliderValue);
+				audioProcessor.flanger.SetDry(sliderValue/100);
 				};
+			currentFlangerSlider->setValue(100);
+
 		}
 	}
 
@@ -349,11 +357,11 @@ GCB_SynthAudioProcessorEditor::GCB_SynthAudioProcessorEditor(GCB_SynthAudioProce
 			delaySlider->setTextValueSuffix(" s");
 			break;
 		case 2:
-			delaySlider->setRange(0.1, 1, 0.01);
+			delaySlider->setRange(0, 100, 1);
 			delaySlider->setTextValueSuffix(" %");
 			break;
 		case 3:
-			delaySlider->setRange(0.1, 1, 0.01);
+			delaySlider->setRange(0, 100, 1);
 			delaySlider->setTextValueSuffix(" %");
 			break;
 		}
@@ -368,6 +376,7 @@ GCB_SynthAudioProcessorEditor::GCB_SynthAudioProcessorEditor(GCB_SynthAudioProce
 				float sliderValue = currentdelaySlider->getValue();
 				audioProcessor.delay.SetFeedback(sliderValue);
 				};
+			currentdelaySlider->setValue(DEFAULT_FEEDBACK_GAIN);
 		}
 		else if (i == 1) {
 			// slider per il delay
@@ -375,22 +384,28 @@ GCB_SynthAudioProcessorEditor::GCB_SynthAudioProcessorEditor(GCB_SynthAudioProce
 				float sliderValue = currentdelaySlider->getValue();
 				audioProcessor.delay.SetDelay(sliderValue);
 				};
+			currentdelaySlider->setValue(DEFAULT_DELAY);
+
 		}
 		else if (i == 2)
 		{
 			//slider dry
 			currentdelaySlider->onValueChange = [currentdelaySlider, this]() {
 				float sliderValue = currentdelaySlider->getValue();
-				audioProcessor.delay.SetDry(sliderValue);
+				audioProcessor.delay.SetDry(sliderValue/100);
 				};
+			currentdelaySlider->setValue(100);
+
 		}
 		else if (i == 3)
 		{
 			//slider wet
 			currentdelaySlider->onValueChange = [currentdelaySlider, this]() {
 				float sliderValue = currentdelaySlider->getValue();
-				audioProcessor.delay.SetWet(sliderValue);
+				audioProcessor.delay.SetWet(sliderValue/100);
 				};
+			currentdelaySlider->setValue(100);
+
 		}
 	}
 

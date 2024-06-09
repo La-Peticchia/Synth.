@@ -21,6 +21,8 @@ public:
         feedBack.setCurrentAndTargetValue(DEFAULT_FEEDBACK_GAIN);
         dry.setCurrentAndTargetValue(1.f);
         wet.setCurrentAndTargetValue(1.f);
+        delay.setCurrentAndTargetValue(DEFAULT_DELAY);
+
         this->sampleRate = sampleRate;
     }
 
@@ -51,6 +53,7 @@ public:
         feedBack.reset(spec.sampleRate, DEFAULT_RAMP_DURATION);
         dry.reset(spec.sampleRate, DEFAULT_RAMP_DURATION);
         wet.reset(spec.sampleRate, DEFAULT_RAMP_DURATION);
+        delay.reset(spec.sampleRate, 1);
     }
 
     float processSample(int channel, float sample) {
@@ -58,12 +61,14 @@ public:
         out = lpFilter.processSample(out);
 
         delayLine.pushSample(channel,sample + out * feedBack.getNextValue());
+        
+        delayLine.setDelay(delay.getNextValue() * sampleRate);
+
         return out * wet.getNextValue() + sample * dry.getNextValue();
     }
 
     void SetDelay(float value){
-        DBG(value);
-        delayLine.setDelay(value * sampleRate);
+        delay.setTargetValue(value);
 
     }
 
@@ -88,7 +93,7 @@ private:
 
     bool enabled = false;
 
-    juce::LinearSmoothedValue<float> feedBack, dry, wet;
+    juce::LinearSmoothedValue<float> feedBack, dry, wet, delay;
     juce::dsp::DelayLine<float> delayLine;
     juce::dsp::IIR::Filter<float> lpFilter;
 

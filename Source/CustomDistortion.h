@@ -9,9 +9,10 @@
 */
 
 #pragma once
+#include <typeinfo>
+#include <JuceHeader.h>
 #include "Enums.h"
-
-#define SMOOTHING_TIME 0.01
+#include "Defines.h"
 
 template <typename Type>
 class CustomDistortion {
@@ -19,8 +20,8 @@ public:
 
     CustomDistortion() {
         SetFunction(none);
-        processorChain.get<gainIndex>().setRampDurationSeconds(SMOOTHING_TIME);
-        processorChain.get<biasIndex>().setRampDurationSeconds(SMOOTHING_TIME);
+        processorChain.get<gainIndex>().setRampDurationSeconds(DEFAULT_RAMP_DURATION);
+        processorChain.get<biasIndex>().setRampDurationSeconds(DEFAULT_RAMP_DURATION);
 
         SetGain(1);
         SetBias(0);
@@ -69,7 +70,14 @@ public:
     
     void prepare(const juce::dsp::ProcessSpec& spec)
     {        
-        processorChain.prepare(spec);
+
+        //juce::dsp::ProcessSpec overSampSpec{ spec.sampleRate * std::pow(2, OVERSAMPLING_FACTOR), spec.maximumBlockSize * std::pow(2, OVERSAMPLING_FACTOR), spec.numChannels };
+        processorChain.prepare(spec); //
+
+        //DBG((int)spec.numChannels);
+        //DBG((int)spec.maximumBlockSize);
+
+        //overSamp.initProcessing(overSampSpec.maximumBlockSize);
         
     }
 
@@ -77,13 +85,22 @@ public:
     template <typename ProcessContext>
     void process(const ProcessContext& context) noexcept
     {
-        if(enabled)
-            processorChain.process(context); 
+
+        //auto outBuffer = context.getOutputBlock();
+        //DBG("Samples" << outBuffer.getNumSamples());
+        //juce::dsp::ProcessContextReplacing<float> overSampContext(overSamp.processSamplesUp(outBuffer));
+
+        if (enabled)
+            processorChain.process(context); //
+        
+        //overSamp.processSamplesDown(outBuffer);
+
     }
 
     void reset() noexcept
     {
         processorChain.reset(); 
+        //overSamp.reset();
     }
 
 
@@ -106,7 +123,8 @@ private:
         bias1Index
     };
     juce::dsp::ProcessorChain<juce::dsp::Gain<Type>, juce::dsp::Bias<Type>, juce::dsp::WaveShaper<Type>> processorChain;
-    
+    juce::dsp::Oversampling<Type> overSamp = juce::dsp::Oversampling<Type>(Type(2), Type(1), juce::dsp::Oversampling<Type>::FilterType::filterHalfBandPolyphaseIIR, false, true);
+
     float maxGain = 5, minGain = 1 / 5;
     float maxBias = 1, minBias = -1;
 

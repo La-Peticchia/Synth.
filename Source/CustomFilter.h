@@ -92,7 +92,7 @@ public:
         
         //auto coeffArray = HPFilterCoefficients::GetCoefficient(note);
         auto coeffArray = juce::dsp::FilterDesign<Type>::designIIRHighpassHighOrderButterworthMethod(freq, sampleRate, HP_FILTER_ORDER);
-        DBG(typeid(coeffArray).name());
+        //DBG(typeid(coeffArray).name());
 
         for (int i = 0; i < filterCount; i++)
             *hpFilter[i]->state = *coeffArray[i];

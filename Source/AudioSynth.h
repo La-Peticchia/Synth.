@@ -92,9 +92,15 @@ class Voice : public juce::SynthesiserVoice {
             tempBlock = juce::dsp::AudioBlock<float>(heapBlock, spec.numChannels, spec.maximumBlockSize);
             gainEnvGen.ResetToZero(GetSkippedSampleRate());
             cutOffEnvGen.ResetToZero(GetSkippedSampleRate());
-            processorChain.prepare(spec);
             lpFilter.prepare(spec);
             hpFilter.prepare(spec);
+
+            juce::dsp::ProcessSpec overSampSpec{ spec.sampleRate * std::pow(2, OVERSAMPLING_FACTOR), spec.maximumBlockSize * std::pow(2, OVERSAMPLING_FACTOR), spec.numChannels };
+            processorChain.prepare(overSampSpec);
+            overSamp.initProcessing(overSampSpec.maximumBlockSize);
+
+            
+            
         }
         void renderNextBlock(juce::AudioSampleBuffer& outputBuffer, int startSample, int numSamples) override
         {
@@ -104,9 +110,19 @@ class Voice : public juce::SynthesiserVoice {
             auto block = tempBlock.getSubBlock(0, (size_t)numSamples);
             block.clear();
             juce::dsp::ProcessContextReplacing<float> context(block);
-
+            /* TODO extra
+                -Aggiungere dei LFO che comandano il valore di gain o offset oppure entrambi del Waveshaper,
+                i valori oscilleranno da il minimo impostato di default e il massimo impostato dall'utente tramite
+                i pomelli già presenti
+                -Aggiungere uno slider per impostare la frequenza dei LFO
+                -Aggiungere una checkBox per attivare/disattivare i LFO (se disattivati il segnale entrante avrà
+                offset e gain statici impostati dall'utente)
+            */
             //Oscillator and Distortion processing
-            processorChain.process(context);
+
+            juce::dsp::ProcessContextReplacing<float> overSampContext(overSamp.processSamplesUp(block));
+            processorChain.process(overSampContext);
+            overSamp.processSamplesDown(block);
 
 #pragma region Envelope and LowPass Filter Processing
 
@@ -178,7 +194,7 @@ class Voice : public juce::SynthesiserVoice {
 
             currentRamps->add(new Ramp(value, DEFAULT_RAMP_DURATION));
 
-            DBG(" type" << type << " state" << state << " duration:" << duration << " targetValue:" << value);
+            //DBG(" type" << type << " state" << state << " duration:" << duration << " targetValue:" << value);
         }
 
         void RemoveEnvelopeRamp(EnvType type, EnvState state) {
@@ -198,7 +214,7 @@ class Voice : public juce::SynthesiserVoice {
             auto currentRamps = (state == attack) ? &currentGen->attacks : &currentGen->releases;
             (*currentRamps)[index]->targetValue = value;
 
-            DBG(" type" << type << " state" << state << " index" << index << " duration:" << (*currentRamps)[index]->duration << " targetValue:" << (*currentRamps)[index]->targetValue);
+            //DBG(" type" << type << " state" << state << " index" << index << " duration:" << (*currentRamps)[index]->duration << " targetValue:" << (*currentRamps)[index]->targetValue);
 
 
         }
@@ -210,7 +226,7 @@ class Voice : public juce::SynthesiserVoice {
             auto currentGen = (type == gainEnv) ? &gainEnvGen : &cutOffEnvGen;
             auto currentRamps = (state == attack) ? &currentGen->attacks : &currentGen->releases;
             (*currentRamps)[index]->duration = value;
-            DBG(" type" << type << " state" << state << " index" << index << " duration:" << value << " targetValue:" << (*currentRamps)[index]->targetValue);
+            //DBG(" type" << type << " state" << state << " index" << index << " duration:" << value << " targetValue:" << (*currentRamps)[index]->targetValue);
         }
 
         void SetEnvDuration(EnvType type, float value) {
@@ -235,6 +251,8 @@ class Voice : public juce::SynthesiserVoice {
         HPFilterCoefficients* coeffRef;
 
         juce::dsp::ProcessorChain<CustomOscillator<float>, CustomDistortion<float>> processorChain;
+        juce::dsp::Oversampling<float> overSamp = juce::dsp::Oversampling<float>(2, 1, juce::dsp::Oversampling<float>::FilterType::filterHalfBandPolyphaseIIR, true, true);
+
         HPFilter<float> hpFilter;
 
         juce::dsp::AudioBlock<float> tempBlock;
