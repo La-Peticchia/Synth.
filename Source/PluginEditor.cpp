@@ -58,7 +58,7 @@ GCB_SynthAudioProcessorEditor::GCB_SynthAudioProcessorEditor(GCB_SynthAudioProce
 	addAndMakeVisible(border);
 	border.setText("Oscillator");
 
-	// Crea attack sliders
+	// attack sliders
 	for (int i = 0; i < numAttackSliders; ++i) {
 		
 		auto oscillatorSlider = std::make_unique<juce::Slider>();
@@ -152,7 +152,7 @@ GCB_SynthAudioProcessorEditor::GCB_SynthAudioProcessorEditor(GCB_SynthAudioProce
 	
 	}
 
-	// Crea release sliders
+	// release sliders
 	for (int i = 0; i < numReleaseSliders; ++i) {
 
 		auto oscillatorSlider = std::make_unique<juce::Slider>();
@@ -253,7 +253,7 @@ GCB_SynthAudioProcessorEditor::GCB_SynthAudioProcessorEditor(GCB_SynthAudioProce
 	audioProcessor.audioSynth.SetRampTargetValue(EnvType::lpFilterEnv, EnvState::release, 1, 0);
 
 
-	// Crea flanger sliders
+	// flanger sliders
 	for (int i = 0; i < numFlangerSliders; ++i) {
 
 		auto flangerSlider = std::make_unique<juce::Slider>();
@@ -336,7 +336,7 @@ GCB_SynthAudioProcessorEditor::GCB_SynthAudioProcessorEditor(GCB_SynthAudioProce
 		}
 	}
 
-	//delay sliders
+	// delay sliders
 	for (int i = 0; i < numDelaySliders; ++i) {
 
 		auto delaySlider = std::make_unique<juce::Slider>();
