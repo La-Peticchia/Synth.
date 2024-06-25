@@ -14,12 +14,40 @@
 //==============================================================================
 GCB_SynthAudioProcessorEditor::GCB_SynthAudioProcessorEditor(GCB_SynthAudioProcessor& p)
 	: AudioProcessorEditor(&p), audioProcessor(p), keyboardComp(p.keyboardState, juce::KeyboardComponentBase::horizontalKeyboard)
+	
 {
 	// Make sure that before the constructor has finished, you've set the
 	// editor's size to whatever you need it to be.
 	addAndMakeVisible(keyboardComp);
 	keyboardComp.setMidiChannel(2);
 
+	//MIDI
+	addAndMakeVisible(midiInputListLabel);
+	midiInputListLabel.setText("MIDI Input:", juce::dontSendNotification);
+	midiInputListLabel.attachToComponent(&midiInputList, true);
+
+	auto midiInputs = juce::MidiInput::getAvailableDevices();
+	addAndMakeVisible(midiInputList);
+	midiInputList.setTextWhenNoChoicesAvailable("No MIDI Inputs Enabled");
+
+	juce::StringArray midiInputNames;
+	for (auto input : midiInputs)
+		midiInputNames.add(input.name);
+
+	midiInputList.addItemList(midiInputNames, 1);
+	midiInputList.onChange = [this] { setMidiInput(midiInputList.getSelectedItemIndex()); };
+
+	for (auto input : midiInputs)
+	{
+		if (deviceManager.isMidiInputDeviceEnabled(input.identifier))
+		{
+			setMidiInput(midiInputs.indexOf(input));
+			break;
+		}
+	}
+
+	if (midiInputList.getSelectedId() == 0)
+		setMidiInput(0);
 
 	//slider per l'oscillator
 	addAndMakeVisible(dialOscillator);
@@ -486,7 +514,7 @@ GCB_SynthAudioProcessorEditor::GCB_SynthAudioProcessorEditor(GCB_SynthAudioProce
 	addAndMakeVisible(dialGain);
 	dialGain.setSliderStyle(juce::Slider::SliderStyle::Rotary);
 	dialGain.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 30, 15);
-	dialGain.setRange(1.1, 5.0, 0.1);
+	dialGain.setRange(MIN_GAIN, MAX_GAIN, 0.1);
 	dialGain.setColour(juce::Slider::ColourIds::rotarySliderFillColourId, juce::Colours::white);
 	dialGain.setColour(juce::Slider::ColourIds::textBoxOutlineColourId, juce::Colours::transparentWhite);
 	dialGain.setColour(juce::Slider::ColourIds::textBoxTextColourId , juce::Colours::transparentWhite);
@@ -573,6 +601,7 @@ GCB_SynthAudioProcessorEditor::GCB_SynthAudioProcessorEditor(GCB_SynthAudioProce
 
 }
 
+
 GCB_SynthAudioProcessorEditor::~GCB_SynthAudioProcessorEditor()
 {
 }
@@ -600,6 +629,11 @@ void GCB_SynthAudioProcessorEditor::resized()
 	auto leftMargin = getWidth() * 0.02;
 	auto dialSize = getWidth() * 0.10;
 	auto dialSpacing = 15;
+
+	//MIDI
+	midiInputList.setBounds(200, 10, getWidth() - 210, 20);
+	keyboardComp.setBounds(10, 40, getWidth() - 20, getHeight() - 50);
+
 
 	// Imposta le dimensioni e la posizione della tastiera MIDI
 	keyboardComp.setBounds(0, getHeight() - keyboardHeight, getWidth(), keyboardHeight);
