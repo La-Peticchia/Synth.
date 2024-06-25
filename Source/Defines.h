@@ -35,3 +35,7 @@
 #define DEFAULT_FLANGER_DELAY 0.0145f
 #define DEFAULT_LFO_FREQUENCY 0.01f
 #define DEFAULT_LFO_DEPTH 1.f
+
+//Distortion
+#define MIN_GAIN 1.1f
+#define MAX_GAIN 5.f

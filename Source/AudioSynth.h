@@ -95,9 +95,11 @@ class Voice : public juce::SynthesiserVoice {
             lpFilter.prepare(spec);
             hpFilter.prepare(spec);
 
-            juce::dsp::ProcessSpec overSampSpec{ spec.sampleRate * std::pow(2, OVERSAMPLING_FACTOR), spec.maximumBlockSize * std::pow(2, OVERSAMPLING_FACTOR), spec.numChannels };
-            processorChain.prepare(overSampSpec);
-            overSamp.initProcessing(overSampSpec.maximumBlockSize);
+            processorChain.prepare(spec);
+
+            //juce::dsp::ProcessSpec overSampSpec{ spec.sampleRate * std::pow(2, OVERSAMPLING_FACTOR), spec.maximumBlockSize * std::pow(2, OVERSAMPLING_FACTOR), spec.numChannels };
+            //processorChain.prepare(overSampSpec);
+            //overSamp.initProcessing(overSampSpec.maximumBlockSize);
 
             
             
@@ -120,9 +122,11 @@ class Voice : public juce::SynthesiserVoice {
             */
             //Oscillator and Distortion processing
 
-            juce::dsp::ProcessContextReplacing<float> overSampContext(overSamp.processSamplesUp(block));
-            processorChain.process(overSampContext);
-            overSamp.processSamplesDown(block);
+            processorChain.process(context); //
+
+            //juce::dsp::ProcessContextReplacing<float> overSampContext(overSamp.processSamplesUp(block));
+            //processorChain.process(overSampContext);
+            //overSamp.processSamplesDown(block);
 
 #pragma region Envelope and LowPass Filter Processing
 
@@ -272,7 +276,7 @@ class Voice : public juce::SynthesiserVoice {
 
 class AudioSynth : public juce::Synthesiser {
 public:
-    static const int maxVoiceNumb = 10;
+    static const int maxVoiceNumb = 20;
     AudioSynth() {
         for (int i = 0; i < maxVoiceNumb; i++) {
 

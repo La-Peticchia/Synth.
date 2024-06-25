@@ -103,6 +103,23 @@ public:
 	void paint(juce::Graphics&) override;
 	void resized() override;
 
+    void setMidiInput(int index)
+    {
+        auto list = juce::MidiInput::getAvailableDevices();
+
+        deviceManager.removeMidiInputDeviceCallback(list[lastInputIndex].identifier, audioProcessor.getMidiCollector());
+
+        auto newInput = list[index];
+
+        if (!deviceManager.isMidiInputDeviceEnabled(newInput.identifier))
+            deviceManager.setMidiInputDeviceEnabled(newInput.identifier, true);
+
+        deviceManager.addMidiInputDeviceCallback(newInput.identifier, audioProcessor.getMidiCollector());
+        midiInputList.setSelectedId(index + 1, juce::dontSendNotification);
+
+        lastInputIndex = index;
+    }
+
 
 private:
 	// This reference is provided as a quick way for your editor to
@@ -118,8 +135,16 @@ private:
 	int numReleaseSliders = 3;
 	int numFlangerSliders = 4;
 	int numDelaySliders = 4;
+
+    //MIDI UI
+    juce::ComboBox midiInputList;
+    juce::Label midiInputListLabel;
+    int lastInputIndex = 0;
+    AudioDeviceManager deviceManager;
 	juce::ToggleButton distortionToggle, filterToggle, delayToggle, flangerToggle;
 	OtherLookAndFeel otherLookAndFeel;
+    
+
 
 	JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(GCB_SynthAudioProcessorEditor)
 };

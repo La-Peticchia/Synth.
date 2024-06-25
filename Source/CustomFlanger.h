@@ -101,6 +101,10 @@ private:
     float popSample() {
         float delayInSamples = currentDelay.getNextValue() * sampleRate;
         float depthInSamples =  depth.getNextValue() * delayInSamples / 2;
+
+        //float val = juce::jmap(currentAngle, 0.f, 2 * juce::MathConstants<float>::pi, -1.f, 1.f);
+        //float triangle = 2 * std::fabs(val) - 1;
+
         float delayFloatingReadPos = std::fmod(delayWritePos + maxDelaySize - delayInSamples + depthInSamples * (1 + sin(currentAngle)) - 1, maxDelaySize);
         int delayReadPos = std::floor(delayFloatingReadPos);
         float value1 = delayLine[delayReadPos];
@@ -109,8 +113,7 @@ private:
         UpdateAngle();
         if (delayReadPos == delayWritePos)
             DBG(delayReadPos);
-
-        return value1 + (value2 - value1) * (delayFloatingReadPos - delayFloatingReadPos);
+        return value1 + (value2 - value1) * (delayFloatingReadPos - delayReadPos);
     }
 
     void pushSample(float value) {

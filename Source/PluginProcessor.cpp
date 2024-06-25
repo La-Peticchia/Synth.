@@ -98,6 +98,8 @@ void GCB_SynthAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBl
 {
     // Use this method as the place to do any pre-playback
     // initialisation that you need..
+    midiMessageCollector.reset(sampleRate);
+
     juce::dsp::ProcessSpec spec { sampleRate, (juce::uint32)samplesPerBlock, 2 };
     audioSynth.prepare(spec);
 
@@ -170,30 +172,6 @@ void GCB_SynthAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, ju
     
     //limiter.process(juce::dsp::ProcessContextReplacing<float>(juce::dsp::AudioBlock<float>(buffer)));
     
-    
-    
-    //int numSamples = buffer.getNumSamples();
-    //int startSample = 0;
-
-    
-
-    //juce::dsp::
-
-    //float rms = 0.f;
-    //for (int i = 0; i < buffer.getNumChannels(); i++)
-    //    rms += buffer.getRMSLevel(i, startSample, numSamples);
-    //rms /= buffer.getNumChannels();
-    //float treshold = -9.f;
-    ////DBG(juce::Decibels::gainToDecibels(rms));
-    //
-    //if(juce::Decibels::gainToDecibels(rms) > treshold)
-    //{
-    //    DBG(juce::Decibels::decibelsToGain(-(juce::Decibels::gainToDecibels(rms) - treshold)));
-    //}
-    //while (numSamples--)
-    //{
-    //    DBG(buffer.getSample(0, startSample++));
-    //}
 }
 
 //==============================================================================
@@ -227,6 +205,8 @@ juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 {
     return new GCB_SynthAudioProcessor();
 }
+
+
 
 //asdaseffsdf
 //fdjoegjdropfgjdrtfo

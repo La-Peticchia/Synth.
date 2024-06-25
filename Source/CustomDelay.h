@@ -87,6 +87,7 @@ public:
     void SetActive(bool tf)
     {
         enabled = tf;
+        delayLine.reset();
     }
 
 private:
