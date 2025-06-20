@@ -23,7 +23,7 @@ A real-time software synthesizer built using the **JUCE** C++ framework. This pr
 - **C++17** – Core programming language.
 - Optional: Add other tools or libraries if applicable (e.g., GUI framework, testing tools).
 
-## Screenshots
+## Preview
 
 ![image](https://github.com/user-attachments/assets/2d5bc2f6-3483-41d4-9fdf-6b05c31a2e98)
 
