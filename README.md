@@ -1,6 +1,6 @@
 # Digital Audio Synthesizer
 
-A real-time software synthesizer built using the **JUCE** C++ framework. This project features core components of a subtractive synthesizer, including waveform generation, distortion, filtering, and time-based effects — designed to create expressive and dynamic electronic sounds.
+A real-time software synthesizer built using the **JUCE** C++ framework. This project features core components of a subtractive synthesizer, including waveform generation, distortion, filtering, and time-based effects.
 
 ## Features
 
